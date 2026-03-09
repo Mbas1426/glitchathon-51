@@ -1,14 +1,14 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation, Routes, Route, Navigate, useParams } from "react-router-dom";
-import { getRiskTier, CARE_PROTOCOLS, PHYSICIANS, OUTREACH_MSGS, APPOINTMENTS, TEST_HISTORY, STATUS_MAP } from "../CareAgent_Combined";
+import { getRiskTier, CARE_PROTOCOLS, PHYSICIANS, OUTREACH_MSGS, APPOINTMENTS, TEST_HISTORY, STATUS_MAP } from "../pages/CareAgent_Combined.jsx";
 import { pt } from '../styles/patientStyles'
 import { C } from '../styles/homeStyles.jsx'
 import { d } from '../styles/doctorStyles.jsx';
-import PtOverview from "./PtOverview.jsx";
-import PtTests from "./PtTests.jsx";
-import PtAppointments from "./PtAppointments.jsx";
-import PtMessages from "./PtMessages.jsx";
-import PtProfile from "./PtProfile.jsx";
+import PtOverview from "../pages/patient/PtOverview.jsx";
+import PtTests from "../pages/patient/PtTests.jsx";
+import PtAppointments from "../pages/patient/PtAppointments.jsx";
+import PtMessages from "../pages/patient/PtMessages.jsx";
+import PtProfile from "../pages/patient/PtProfile.jsx";
 import { CSS } from '../styles/css.jsx';
 
 export default function PatientApp({ patient: p, onLogout }) {

@@ -1,8 +1,8 @@
-import { C } from '../styles/homeStyles.jsx'
+import { C } from '../../styles/homeStyles.jsx'
 import { diagIcon } from '../CareAgent_Combined.jsx'
-import { d } from '../styles/doctorStyles.jsx'
+import { d } from '../../styles/doctorStyles.jsx'
 import { CARE_PROTOCOLS, getRiskTier, getRiskColor, getStatusBadge, getChannelIcon } from "../CareAgent_Combined.jsx";
-import PulseRing from './PulseRing.jsx'
+import PulseRing from '../../components/PulseRing.jsx'
 
 export default function DocPatients({ patients, filterRisk, setFilterRisk, filterDiag, setFilterDiag, onSelect, selected }) {
   return (

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { C } from '../styles/homeStyles.jsx'
+import { C } from '../../styles/homeStyles.jsx'
 import { diagIcon } from '../CareAgent_Combined.jsx'
 import { getRiskTier, getRiskColor } from "../CareAgent_Combined.jsx";
 

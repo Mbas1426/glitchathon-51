@@ -2,13 +2,13 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation, Routes, Route, Navigate, useParams } from "react-router-dom";
 import { C, h } from '../styles/homeStyles.jsx'
 import { d } from '../styles/doctorStyles.jsx'
-import { PHYSICIANS, PATIENTS, CARE_PROTOCOLS, OUTREACH_RESPONSES, getRiskTier } from "../CareAgent_Combined.jsx";
+import { PHYSICIANS, PATIENTS, CARE_PROTOCOLS, OUTREACH_RESPONSES, getRiskTier } from "../pages/CareAgent_Combined.jsx";
 import PulseRing from './PulseRing.jsx'
-import DocDashboard from './DocDashboard.jsx'
-import DocPatients from './DocPatients.jsx'
-import DocOutreach from './DocOutreach.jsx'
-import DocCareGaps from './DocCareGaps.jsx'
-import DocEscalations from './DocEscalations.jsx'
+import DocDashboard from '../pages/doctor/DocDashboard.jsx'
+import DocPatients from '../pages/doctor/DocPatients.jsx'
+import DocOutreach from '../pages/doctor/DocOutreach.jsx'
+import DocCareGaps from '../pages/doctor/DocCareGaps.jsx'
+import DocEscalations from '../pages/doctor/DocEscalations.jsx'
 import DocPatientModal from './DocPatientModal.jsx'
 
 export default function DoctorApp({ doctor, onLogout }) {
@@ -181,10 +181,43 @@ export default function DoctorApp({ doctor, onLogout }) {
                 />
               }
             />
-            <Route path="outreach" element={<DocOutreach patients={myPatients} responses={OUTREACH_RESPONSES} onSend={handleSend} sentMsgs={sentMsgs} sendingMsg={sendingMsg} />} />
-            <Route path="gaps" element={<DocCareGaps patients={myPatients} gapsLog={gapsLog} setGapsLog={setGapsLog} showToast={showToast} />} />
-            <Route path="escalations" element={<DocEscalations patients={escalated} physicians={PHYSICIANS} onEscalate={handleEscalate} />} />
-            <Route path="/" element={<Navigate to={`/doctor/${id}/dashboard`} replace />} />
+            <Route
+              path="outreach"
+              element={
+                <DocOutreach
+                  patients={myPatients}
+                  responses={OUTREACH_RESPONSES}
+                  onSend={handleSend}
+                  sentMsgs={sentMsgs}
+                  sendingMsg={sendingMsg}
+                />
+              }
+            />
+            <Route
+              path="gaps"
+              element={
+                <DocCareGaps
+                  patients={myPatients}
+                  gapsLog={gapsLog}
+                  setGapsLog={setGapsLog}
+                  showToast={showToast}
+                />
+              }
+            />
+            <Route
+              path="escalations"
+              element={
+                <DocEscalations
+                  patients={escalated}
+                  physicians={PHYSICIANS}
+                  onEscalate={handleEscalate}
+                />
+              }
+            />
+            <Route
+              path="/"
+              element={<Navigate to={`/doctor/${id}/dashboard`} replace />}
+            />
           </Routes>
         </div>
       </main>
@@ -195,7 +228,10 @@ export default function DoctorApp({ doctor, onLogout }) {
         </div>
       )}
       {selectedPatient && (
-        <DocPatientModal patient={selectedPatient} onClose={() => setSelectedPatient(null)} />
+        <DocPatientModal
+          patient={selectedPatient}
+          onClose={() => setSelectedPatient(null)}
+        />
       )}
     </div>
   );

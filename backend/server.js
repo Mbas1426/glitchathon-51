@@ -41,7 +41,7 @@ app.post("/doctor/send-outreach", (req, res) => {
 
   const msgs = getMsgs();
   const newMsg = {
-    date: new Date().toISOString().slice(0, 10),
+    date: new Date().toISOString(),
     msg: message,
     type: type
   };

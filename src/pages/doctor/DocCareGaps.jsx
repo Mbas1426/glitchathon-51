@@ -1,9 +1,9 @@
 import { useState } from "react";
-import { C } from '../styles/homeStyles.jsx'
-import { d } from '../styles/doctorStyles.jsx'
+import { C } from '../../styles/homeStyles.jsx'
+import { d } from '../../styles/doctorStyles.jsx'
 import { diagIcon } from '../CareAgent_Combined.jsx'
 import { getRiskTier, getRiskColor } from "../CareAgent_Combined.jsx";
-import PulseRing from './PulseRing.jsx'
+import PulseRing from '../../components/PulseRing.jsx'
 
 export default function DocCareGaps({ patients, gapsLog, setGapsLog, showToast }) {
 	const [closing, setClosing] = useState(null);

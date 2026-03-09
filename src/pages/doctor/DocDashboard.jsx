@@ -1,8 +1,8 @@
-import { C } from '../styles/homeStyles.jsx'
-import { d } from '../styles/doctorStyles.jsx'
+import { C } from '../../styles/homeStyles.jsx'
+import { d } from '../../styles/doctorStyles.jsx'
 import { diagIcon } from '../CareAgent_Combined.jsx'
-import Counter from './Counter.jsx'
-import Sparkline from './Sparkline.jsx'
+import Counter from '../../components/Counter.jsx'
+import Sparkline from '../../components/Sparkline.jsx'
 
 export default function DocDashboard({ patients, critical, overdue, closed, escalated, protocols, onNavigate }) {
 	const diagBreakdown = ["Diabetes", "CKD", "Hypertension", "Hypothyroidism"].map(dd => ({

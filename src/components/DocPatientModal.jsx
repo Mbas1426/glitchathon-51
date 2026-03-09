@@ -1,5 +1,5 @@
 import { C } from '../styles/homeStyles.jsx'
-import { PHYSICIANS, CARE_PROTOCOLS, TEST_HISTORY, getRiskTier, getRiskColor, getStatusBadge, diagIcon, getChannelIcon } from "../CareAgent_Combined.jsx";
+import { PHYSICIANS, CARE_PROTOCOLS, TEST_HISTORY, getRiskTier, getRiskColor, getStatusBadge, diagIcon, getChannelIcon } from "../pages/CareAgent_Combined.jsx";
 
 export default function DocPatientModal({ patient: p, onClose }) {
 	const risk = getRiskTier(p); const rc = getRiskColor(risk);

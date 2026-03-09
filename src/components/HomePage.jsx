@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
-import {C, h} from '../styles/homeStyles.jsx'
-import { PHYSICIANS, PATIENTS, DIAG_ABBR, STATUS_MAP } from  "../CareAgent_Combined.jsx";
-import {CSS} from '../styles/css.jsx';
+import { C, h } from '../styles/homeStyles.jsx'
+import { PHYSICIANS, PATIENTS, DIAG_ABBR, STATUS_MAP } from "../pages/CareAgent_Combined.jsx";
+import { CSS } from '../styles/css.jsx';
 
 export default function HomePage({ onDoctor, onPatient }) {
   const [role, setRole] = useState(null); // null | "doctor" | "patient"
@@ -31,7 +31,7 @@ export default function HomePage({ onDoctor, onPatient }) {
       <div style={h.card} className="fadeSlide">
         {/* Logo */}
         <div style={h.logoRow}>
-          <div style={h.logoMark}><span style={{ fontSize:18, color:C.bgCard }}>✚</span></div>
+          <div style={h.logoMark}><span style={{ fontSize: 18, color: C.bgCard }}>✚</span></div>
           <div>
             <div style={h.brandName}>CareAgent</div>
             <div style={h.brandSub}>Kathir Memorial Hospital · Chennai</div>
@@ -71,9 +71,9 @@ export default function HomePage({ onDoctor, onPatient }) {
               <span style={h.roleBadgeIcon}>{role === "doctor" ? "🩺" : "👤"}</span>
               <span style={h.roleBadgeText}>{role === "doctor" ? "Doctor Login" : "Patient Login"}</span>
             </div>
-            <div style={{ position:"relative", marginTop:12 }}>
+            <div style={{ position: "relative", marginTop: 12 }}>
               <div style={{ ...h.searchField, borderColor: focused ? C.blue : C.border }}>
-                <span style={{ fontSize:9, color:C.textMuted, letterSpacing:2, display:"block", marginBottom:4 }}>
+                <span style={{ fontSize: 9, color: C.textMuted, letterSpacing: 2, display: "block", marginBottom: 4 }}>
                   {role === "doctor" ? "DOCTOR NAME" : "PATIENT NAME OR ID"}
                 </span>
                 <input
@@ -92,12 +92,12 @@ export default function HomePage({ onDoctor, onPatient }) {
                     const isDoc = role === "doctor";
                     const key = isDoc ? m.physician_id : m.patient_id;
                     const name = isDoc ? m.physician_name : m.patient_name;
-                    const meta = isDoc ? m.specialty : `ID ${String(m.patient_id).padStart(4,"0")} · ${DIAG_ABBR[m.diagnosis]} · ${m.age}y`;
+                    const meta = isDoc ? m.specialty : `ID ${String(m.patient_id).padStart(4, "0")} · ${DIAG_ABBR[m.diagnosis]} · ${m.age}y`;
                     const badge = isDoc ? null : STATUS_MAP[m.status];
                     return (
                       <button key={key} onMouseDown={() => setSelected(m)} style={{ ...h.dropItem, background: selected && (isDoc ? selected.physician_id : selected.patient_id) === key ? C.blueFaint : "transparent" }}>
-                        <div style={h.dropAvatar}>{name.split(" ").map(n=>n[0]).join("").slice(0,2)}</div>
-                        <div style={{ flex:1 }}>
+                        <div style={h.dropAvatar}>{name.split(" ").map(n => n[0]).join("").slice(0, 2)}</div>
+                        <div style={{ flex: 1 }}>
                           <div style={h.dropName}>{name}</div>
                           <div style={h.dropMeta}>{meta}</div>
                         </div>
@@ -114,7 +114,7 @@ export default function HomePage({ onDoctor, onPatient }) {
                 <div style={h.selectedLabel}>{role === "doctor" ? "SELECTED DOCTOR" : "SELECTED PATIENT"}</div>
                 <div style={h.selectedName}>{role === "doctor" ? selected.physician_name : selected.patient_name}</div>
                 <div style={h.selectedMeta}>
-                  {role === "doctor" ? `${selected.specialty} · ${selected.hospital}` : `Patient #${String(selected.patient_id).padStart(4,"0")} · ${selected.diagnosis} · ${selected.age} yrs`}
+                  {role === "doctor" ? `${selected.specialty} · ${selected.hospital}` : `Patient #${String(selected.patient_id).padStart(4, "0")} · ${selected.diagnosis} · ${selected.age} yrs`}
                 </div>
                 <button onClick={handleProceed} style={h.proceedBtn}>
                   {role === "doctor" ? "Open Doctor Dashboard →" : "Access My Records →"}
@@ -128,21 +128,21 @@ export default function HomePage({ onDoctor, onPatient }) {
               <div style={h.quickRow}>
                 {role === "doctor"
                   ? PHYSICIANS.map(d => (
-                      <button key={d.physician_id} onClick={() => onDoctor(d.physician_id)} style={h.quickBtn}>
-                        <div style={h.quickName}>{d.physician_name.replace("Dr. ","Dr.")}</div>
-                        <div style={h.quickSub}>{d.specialty}</div>
-                      </button>
-                    ))
+                    <button key={d.physician_id} onClick={() => onDoctor(d.physician_id)} style={h.quickBtn}>
+                      <div style={h.quickName}>{d.physician_name.replace("Dr. ", "Dr.")}</div>
+                      <div style={h.quickSub}>{d.specialty}</div>
+                    </button>
+                  ))
                   : [8, 14, 1, 10].map(id => {
-                      const p = PATIENTS.find(x => x.patient_id === id);
-                      return (
-                        <button key={id} onClick={() => onPatient(id)} style={h.quickBtn}>
-                          <div style={h.quickName}>{p.patient_name.split(" ")[0]}</div>
-                          <div style={h.quickSub}>{DIAG_ABBR[p.diagnosis]}</div>
-                          <div style={{ ...h.quickStatus, color: p.status==="escalated" ? C.red : C.textMuted }}>{STATUS_MAP[p.status]}</div>
-                        </button>
-                      );
-                    })}
+                    const p = PATIENTS.find(x => x.patient_id === id);
+                    return (
+                      <button key={id} onClick={() => onPatient(id)} style={h.quickBtn}>
+                        <div style={h.quickName}>{p.patient_name.split(" ")[0]}</div>
+                        <div style={h.quickSub}>{DIAG_ABBR[p.diagnosis]}</div>
+                        <div style={{ ...h.quickStatus, color: p.status === "escalated" ? C.red : C.textMuted }}>{STATUS_MAP[p.status]}</div>
+                      </button>
+                    );
+                  })}
               </div>
             </div>
           </div>

@@ -1,5 +1,5 @@
-import { C } from '../styles/homeStyles.jsx'
-import { d } from '../styles/doctorStyles.jsx'
+import { C } from '../../styles/homeStyles.jsx'
+import { d } from '../../styles/doctorStyles.jsx'
 import { diagIcon } from '../CareAgent_Combined.jsx'
 import { getRiskTier, getRiskColor, getChannelIcon } from "../CareAgent_Combined.jsx";
 
