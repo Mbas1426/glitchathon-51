@@ -1,8 +1,7 @@
 import {C, h} from './homeStyles.jsx'
 
-
 export const d = {
-  root:        { display:"flex", height:"100vh", background:C.bg, fontFamily:"'Sora', sans-serif", color:C.text, overflow:"hidden" },
+  root:        { display:"flex", height:"100vh", width:"100vw", background:C.bg, fontFamily:"'Sora', sans-serif", color:C.text, overflow:"hidden" },
   sidebar:     { width:224, background:C.sidebar, borderRight:`1px solid ${C.sidebarBorder}`, display:"flex", flexDirection:"column", padding:"20px 0", flexShrink:0 },
   logo:        { display:"flex", alignItems:"center", gap:10, padding:"0 20px 20px", borderBottom:`1px solid ${C.sidebarBorder}` },
   logoMark:    { width:34, height:34, borderRadius:10, background:`linear-gradient(135deg,#1565a8,#2980c4)`, display:"flex", alignItems:"center", justifyContent:"center", color:"#fff", flexShrink:0 },

@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import {C, h} from '../styles/homeStyles.jsx'
 import {d} from '../styles/doctorStyles.jsx'
 import {diagIcon} from '../CareAgent_Combined.jsx'
-import { PHYSICIANS, PATIENTS, CARE_PROTOCOLS, OUTREACH_RESPONSES, getRiskTier, getRiskColor, getStatusBadge, getChannelIcon } from  "../CareAgent_Combined.jsx";
+import { getRiskTier, getRiskColor} from  "../CareAgent_Combined.jsx";
 import PulseRing from './PulseRing.jsx'
 
 export default function DocCareGaps({ patients, gapsLog, setGapsLog, showToast }) {

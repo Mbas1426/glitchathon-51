@@ -24,7 +24,7 @@ export const C = {
 };
 
 export const h = {
-  root:     { minHeight:"100vh", background:C.bg, display:"flex", alignItems:"center", justifyContent:"center", fontFamily:"'DM Mono', monospace", position:"relative" },
+  root:     { minHeight:"100vh", minWidth:"100vw", background:C.bg, display:"flex", alignItems:"center", justifyContent:"center", fontFamily:"'DM Mono', monospace", position:"relative" },
   grid:     { position:"absolute", inset:0, backgroundImage:`linear-gradient(${C.border} 1px,transparent 1px),linear-gradient(90deg,${C.border} 1px,transparent 1px)`, backgroundSize:"36px 36px", opacity:0.5, pointerEvents:"none" },
   card:     { position:"relative", zIndex:1, background:C.bgCard, border:`1px solid ${C.borderBright}`, borderRadius:20, padding:"36px 36px 28px", width:"100%", maxWidth:480, display:"flex", flexDirection:"column", gap:20, boxShadow:"0 4px 32px rgba(14,40,100,0.08)" },
   logoRow:  { display:"flex", alignItems:"center", gap:12 },

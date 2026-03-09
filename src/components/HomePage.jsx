@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import {C, h} from '../styles/homeStyles.jsx'
 import { PHYSICIANS, PATIENTS, DIAG_ABBR, STATUS_MAP } from  "../CareAgent_Combined.jsx";
+import {CSS} from '../styles/css.jsx';
 
 export default function HomePage({ onDoctor, onPatient }) {
   const [role, setRole] = useState(null); // null | "doctor" | "patient"
@@ -25,7 +26,7 @@ export default function HomePage({ onDoctor, onPatient }) {
 
   return (
     <div style={h.root}>
-      {/* <style>{CSS}</style> */}
+      <style>{CSS}</style>
       <div style={h.grid} />
       <div style={h.card} className="fadeSlide">
         {/* Logo */}

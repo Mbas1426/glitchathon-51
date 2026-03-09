@@ -1,4 +1,4 @@
-import {C, h} from '../styles/homeStyles.jsx'
+import {C} from '../styles/homeStyles.jsx'
 import {d} from '../styles/doctorStyles.jsx'
 import {diagIcon} from '../CareAgent_Combined.jsx'
 import Counter from './Counter.jsx'

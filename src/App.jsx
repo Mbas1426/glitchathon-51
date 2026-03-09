@@ -1,7 +1,7 @@
 import CareAgent from "./CareAgent_Combined";
 
 function App() {
-  return <CareAgent />;
+  return <CareAgent/>;
 }
 
 export default App;
