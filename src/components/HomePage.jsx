@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import {C, h} from '../styles/homeStyles.jsx'
-import { PHYSICIANS } from  "../CareAgent_Combined.jsx";
+import { PHYSICIANS, PATIENTS, DIAG_ABBR, STATUS_MAP } from  "../CareAgent_Combined.jsx";
 
 export default function HomePage({ onDoctor, onPatient }) {
   const [role, setRole] = useState(null); // null | "doctor" | "patient"

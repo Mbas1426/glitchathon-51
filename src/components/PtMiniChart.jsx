@@ -1,3 +1,5 @@
+import {C, h} from '../styles/homeStyles.jsx'
+
 export default function PtMiniChart({ hist, threshold }) {
   const maxVal = Math.max(...hist.map(h=>h.value)) * 1.15;
   return (

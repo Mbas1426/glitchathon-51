@@ -3,6 +3,7 @@ import HomePage from './components/HomePage.jsx';
 import DoctorApp from './components/DoctorApp.jsx';
 import PtMiniChart from './components/PtMiniChart.jsx';
 import {C, h} from './styles/homeStyles.jsx'
+import {d} from './styles/doctorStyles.jsx'
 import Counter from './components/Counter.jsx'
 import PulseRing from './components/PulseRing.jsx'
 import Sparkline from './components/Sparkline.jsx'
@@ -57,7 +58,7 @@ export const TEST_HISTORY = {
   15: [{date:"2023-07-28",value:6.8},{date:"2023-10-22",value:8.9},{date:"2024-01-16",value:10.6},{date:"2024-04-16",value:11.8},{date:"2024-07-15",value:12.4}],
 };
 
-const OUTREACH_MSGS = {
+export const OUTREACH_MSGS = {
   1:  [{date:"2025-02-10",msg:"Your HbA1c is 120 days overdue. Last value 9.5% was critically high. Please book a home collection immediately.",type:"urgent"},{date:"2025-01-12",msg:"Reminder: HbA1c test is due. Please schedule at your earliest convenience.",type:"reminder"}],
   8:  [{date:"2025-03-01",msg:"URGENT: Your HbA1c of 11.2% indicates dangerously uncontrolled diabetes. Dr. Priya Sharma has been alerted. Please call the hospital today.",type:"urgent"},{date:"2025-02-01",msg:"Your HbA1c test is overdue by 130 days. Please respond to schedule a home collection.",type:"urgent"}],
   9:  [{date:"2025-03-02",msg:"ESCALATED: Creatinine 4.1 mg/dL with 173 days overdue. Dr. Arjun Mehta requires you to attend in-person immediately.",type:"urgent"}],
@@ -98,8 +99,8 @@ export const getStatusBadge = (status) => ({
 }[status] || { label: status, bg: "#f0f0f0", color: "#888" });
 export const getChannelIcon = (ch) => ({ WhatsApp:"💬", SMS:"📱", Call:"📞", Email:"✉️" }[ch] || "📨");
 export const diagIcon = (d) => ({ Diabetes:"🩸", CKD:"🫘", Hypertension:"💓", Hypothyroidism:"🦋" }[d] || "🏥");
-const DIAG_ABBR = { Diabetes:"DM", CKD:"CKD", Hypertension:"HTN", Hypothyroidism:"HYPO" };
-const STATUS_MAP = { overdue:"OVERDUE", escalated:"ESCALATED", pending:"PENDING", responded:"RESPONDED", closed:"UP TO DATE" };
+export const DIAG_ABBR = { Diabetes:"DM", CKD:"CKD", Hypertension:"HTN", Hypothyroidism:"HYPO" };
+export const STATUS_MAP = { overdue:"OVERDUE", escalated:"ESCALATED", pending:"PENDING", responded:"RESPONDED", closed:"UP TO DATE" };
 
 
 // ROOT — routing: home | doctor | patient
