@@ -24,7 +24,7 @@ const saveUsers = (data) => fs.writeFileSync(usersPath, JSON.stringify(data, nul
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 5001;
+const PORT = process.env.PORT || 5002;
 
 // Middleware
 app.use(cors());
@@ -208,6 +208,78 @@ Instructions:
   }
 });
 
-app.listen(PORT, () => {
+const http = require("http");
+const { Server } = require("socket.io");
+
+const server = http.createServer(app);
+const io = new Server(server, {
+  cors: {
+    origin: "*",
+    methods: ["GET", "POST"]
+  }
+});
+
+// Real-time user connection mapping tracker
+const connectedUsers = {}; // Maps { role_id: socket.id }
+
+io.on("connection", (socket) => {
+  console.log("Client connected:", socket.id);
+
+  // When a user logs in, they identify themselves to the socket server
+  socket.on("register", (userId) => {
+    connectedUsers[userId] = socket.id;
+    console.log(`User registered: ${userId} -> ${socket.id}`);
+  });
+
+  // Handle a call initiation
+  socket.on("callUser", (data) => {
+    // data: { userToCall, signalData, from, callerName }
+    const targetSocket = connectedUsers[data.userToCall];
+    if (targetSocket) {
+      io.to(targetSocket).emit("callUser", {
+        signal: data.signalData,
+        from: data.from,
+        callerName: data.callerName
+      });
+    }
+  });
+
+  // Handle answering a call
+  socket.on("answerCall", (data) => {
+    // data: { to, signal }
+    const targetSocket = connectedUsers[data.to];
+    if (targetSocket) {
+      io.to(targetSocket).emit("callAccepted", data.signal);
+    }
+  });
+
+  // Handle declining/ending a call
+  socket.on("declineCall", (data) => {
+    const targetSocket = connectedUsers[data.to];
+    if (targetSocket) {
+      io.to(targetSocket).emit("callDeclined");
+    }
+  });
+
+  socket.on("endCall", (data) => {
+    const targetSocket = connectedUsers[data.to];
+    if (targetSocket) {
+      io.to(targetSocket).emit("callEnded");
+    }
+  });
+
+  socket.on("disconnect", () => {
+    // Cleanup the connection mapping on disconnect
+    for (const [userId, socketId] of Object.entries(connectedUsers)) {
+      if (socketId === socket.id) {
+        delete connectedUsers[userId];
+        console.log(`User disconnected: ${userId}`);
+        break;
+      }
+    }
+  });
+});
+
+server.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });

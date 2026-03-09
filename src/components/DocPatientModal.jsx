@@ -1,7 +1,7 @@
 import { C } from '../styles/homeStyles.jsx'
 import { useData } from "../CareAgent_Combined.jsx";
 
-export default function DocPatientModal({ patient: p, onClose }) {
+export default function DocPatientModal({ patient: p, onClose, onCall }) {
 	const { PHYSICIANS, CARE_PROTOCOLS, TEST_HISTORY, getRiskTier, getRiskColor, getStatusBadge, diagIcon, getChannelIcon } = useData();
 	const risk = getRiskTier(p); const rc = getRiskColor(risk);
 	const sb = getStatusBadge(p.status);
@@ -35,12 +35,20 @@ export default function DocPatientModal({ patient: p, onClose }) {
 							</div>
 						</div>
 					</div>
-					<button
-						onClick={onClose}
-						style={{ background: C.bgDeep, border: `1px solid ${C.border}`, color: C.textMuted, width: 30, height: 30, borderRadius: 8, cursor: "pointer", fontSize: 12 }}
-					>
-						✕
-					</button>
+					<div style={{ display: 'flex', gap: 10 }}>
+						<button
+							onClick={onCall}
+							style={{ background: C.green, border: `none`, padding: "8px 16px", color: 'white', borderRadius: 8, cursor: "pointer", fontSize: 13, fontWeight: "bold" }}
+						>
+							📞 Call
+						</button>
+						<button
+							onClick={onClose}
+							style={{ background: C.bgDeep, border: `1px solid ${C.border}`, color: C.textMuted, width: 34, height: 34, borderRadius: 8, cursor: "pointer", fontSize: 14 }}
+						>
+							✕
+						</button>
+					</div>
 				</div>
 				<div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
 					{[

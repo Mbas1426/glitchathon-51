@@ -12,13 +12,16 @@ import DocOutreach from './DocOutreach.jsx'
 import DocCareGaps from './DocCareGaps.jsx'
 import DocEscalations from './DocEscalations.jsx'
 import DocPatientModal from './DocPatientModal.jsx'
+import VideoCallModal from './VideoCallModal.jsx'
+import { useSocket } from '../SocketContext.jsx';
+import Peer from 'simple-peer';
 
 export default function DoctorApp({ doctor, onLogout }) {
   const SvgBackground = () => (
-    <svg 
-      style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', zIndex: 0, pointerEvents: 'none' }} 
-      preserveAspectRatio="xMidYMid slice" 
-      viewBox="0 0 1440 900" 
+    <svg
+      style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', zIndex: 0, pointerEvents: 'none' }}
+      preserveAspectRatio="xMidYMid slice"
+      viewBox="0 0 1440 900"
       xmlns="http://www.w3.org/2000/svg"
     >
       <defs>
@@ -31,23 +34,23 @@ export default function DoctorApp({ doctor, onLogout }) {
           <stop offset="100%" stopColor="#FF3B30" />
         </linearGradient>
       </defs>
-      
+
       <rect width="1440" height="900" fill="#ffffff" />
-      
+
       {/* Light gray wave */}
       <path fill="#F4F6F9" d="M0,900 L0,700 C400,600 500,800 900,600 C1200,450 1350,550 1440,450 L1440,900 Z" />
       <path fill="#EAECEF" d="M0,900 L0,750 C300,700 400,850 800,750 C1100,650 1300,800 1440,700 L1440,900 Z" opacity="0.6" />
-      
+
       {/* Top Right Dark Blue */}
       <path fill="#2E557A" d="M600,0 C800,250 1100,150 1440,300 L1440,0 Z" />
-      
+
       {/* Top Left Orange */}
       <path fill="url(#gradOrangeTop)" d="M0,0 L600,0 C500,150 600,250 400,350 C250,425 250,550 0,550 Z" />
       <path fill="#FF3B30" opacity="0.8" d="M0,0 L450,0 C350,150 400,250 250,350 C100,450 100,500 0,400 Z" />
-      
+
       {/* Bottom Right Orange */}
       <path fill="url(#gradOrangeBot)" d="M800,900 C900,750 1000,850 1150,650 C1250,500 1350,450 1440,550 L1440,900 Z" />
-      
+
       {/* Blue Pill */}
       <rect x="-30" y="650" width="230" height="70" rx="35" fill="#297FC6" />
     </svg>
@@ -62,6 +65,20 @@ export default function DoctorApp({ doctor, onLogout }) {
   // e.g. /doctor/1/dashboard -> dashboard
   const pathParts = location.pathname.split('/');
   const activeTab = pathParts[pathParts.indexOf(id) + 1] || "dashboard";
+  const socket = useSocket();
+
+  const [callState, setCallState] = useState({
+    isCalling: false,
+    receivingCall: false,
+    caller: "",
+    callerSignal: null,
+    callAccepted: false,
+    callEnded: false,
+  });
+
+  const [localStream, setLocalStream] = useState(null);
+  const [remoteStream, setRemoteStream] = useState(null);
+  const connectionRef = useRef();
 
   const [selectedPatient, setSelectedPatient] = useState(null);
   const [filterRisk, setFilterRisk] = useState("all");
@@ -75,6 +92,83 @@ export default function DoctorApp({ doctor, onLogout }) {
     { id: 1, patient: "Usha Balasubramaniam", test: "HbA1c", closedAt: "2025-03-05", status: "Completed" },
   ]);
 
+  useEffect(() => {
+    if (!socket) return;
+
+    socket.on("callAccepted", (signal) => {
+      setCallState(prev => ({ ...prev, callAccepted: true }));
+      if (connectionRef.current) {
+        connectionRef.current.signal(signal);
+      }
+    });
+
+    socket.on("callDeclined", () => {
+      showToast("Call was declined.");
+      endCall();
+    });
+
+    socket.on("callEnded", () => {
+      endCall();
+    });
+
+    return () => {
+      socket.off("callAccepted");
+      socket.off("callDeclined");
+      socket.off("callEnded");
+    };
+  }, [socket]);
+
+  const initiateCall = async (patient) => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+      setLocalStream(stream);
+      setCallState(prev => ({ ...prev, isCalling: true, caller: patient.patient_name }));
+
+      const peer = new Peer({
+        initiator: true,
+        trickle: false,
+        stream: stream
+      });
+
+      peer.on("signal", (data) => {
+        socket.emit("callUser", {
+          userToCall: `patient_${patient.patient_id}`,
+          signalData: data,
+          from: `doctor_${doctor.physician_id}`,
+          callerName: `Dr. ${doctor.physician_name}`
+        });
+      });
+
+      peer.on("stream", (currentStream) => {
+        setRemoteStream(currentStream);
+      });
+
+      connectionRef.current = peer;
+      setSelectedPatient(null);
+    } catch (err) {
+      console.error("Failed to get local stream", err);
+      showToast("Camera/Mic access denied", "warning");
+    }
+  };
+
+  const endCall = () => {
+    setCallState({ isCalling: false, receivingCall: false, caller: "", callerSignal: null, callAccepted: false, callEnded: true });
+
+    if (connectionRef.current) {
+      connectionRef.current.destroy();
+    }
+
+    if (localStream) {
+      localStream.getTracks().forEach(track => track.stop());
+      setLocalStream(null);
+    }
+    setRemoteStream(null);
+
+    if (callState.caller) {
+      socket.emit("endCall", { to: `patient_${doctor.physician_id}` }); // Fallback logic would properly track the current connected patient ID
+    }
+  };
+
   const showToast = (msg, type = "success") => { setToastMsg({ msg, type }); setTimeout(() => setToastMsg(null), 3000); };
 
   const handleTabChange = (tab) => {
@@ -87,7 +181,7 @@ export default function DoctorApp({ doctor, onLogout }) {
   const handleSend = async (pid, msg) => {
     setSendingMsg(pid);
     try {
-      const res = await fetch("http://localhost:5001/doctor/send-outreach", {
+      const res = await fetch("http://localhost:5002/doctor/send-outreach", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ patient_id: pid, message: msg })
@@ -179,8 +273,8 @@ export default function DoctorApp({ doctor, onLogout }) {
         <div style={{ flex: 1, padding: "32px 40px", maxWidth: 1400, width: "100%", margin: "0 auto", overflowY: "auto" }} className="fadeIn" key={activeTab}>
           <div style={{ opacity: animIn ? 1 : 0, transform: animIn ? "translateY(0)" : "translateY(8px)", transition: "all 0.2s ease" }}>
             <Routes>
-              <Route path="dashboard" element={ <DocDashboard patients={myPatients} critical={critical} overdue={overdue} closed={closed} escalated={escalated} protocols={CARE_PROTOCOLS} onNavigate={handleTabChange} /> } />
-              <Route path="patients" element={ <DocPatients patients={filtered} filterRisk={filterRisk} setFilterRisk={setFilterRisk} filterDiag={filterDiag} setFilterDiag={setFilterDiag} onSelect={setSelectedPatient} selected={selectedPatient} /> } />
+              <Route path="dashboard" element={<DocDashboard patients={myPatients} critical={critical} overdue={overdue} closed={closed} escalated={escalated} protocols={CARE_PROTOCOLS} onNavigate={handleTabChange} />} />
+              <Route path="patients" element={<DocPatients patients={filtered} filterRisk={filterRisk} setFilterRisk={setFilterRisk} filterDiag={filterDiag} setFilterDiag={setFilterDiag} onSelect={setSelectedPatient} selected={selectedPatient} />} />
               <Route path="outreach" element={<DocOutreach patients={myPatients} responses={OUTREACH_RESPONSES} onSend={handleSend} sentMsgs={sentMsgs} sendingMsg={sendingMsg} />} />
               <Route path="gaps" element={<DocCareGaps patients={myPatients} gapsLog={gapsLog} setGapsLog={setGapsLog} showToast={showToast} />} />
               <Route path="escalations" element={<DocEscalations patients={escalated} physicians={PHYSICIANS} onEscalate={handleEscalate} />} />
@@ -196,7 +290,15 @@ export default function DoctorApp({ doctor, onLogout }) {
         </div>
       )}
       {selectedPatient && (
-        <DocPatientModal patient={selectedPatient} onClose={() => setSelectedPatient(null)} />
+        <DocPatientModal patient={selectedPatient} onClose={() => setSelectedPatient(null)} onCall={() => initiateCall(selectedPatient)} />
+      )}
+      {callState.isCalling && (
+        <VideoCallModal
+          localStream={localStream}
+          remoteStream={remoteStream}
+          callerName={callState.caller}
+          onEndCall={endCall}
+        />
       )}
     </div>
   );

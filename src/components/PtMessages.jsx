@@ -16,9 +16,9 @@ export default function PtMessages({ p, msgs }) {
       msg: m.message || m.msg, // handle different json structures
       type: "doctor"
     }));
-    
+
     setMessages(formattedMsgs);
-    
+
     // Only call start conversation if it's actually empty
     if (formattedMsgs.length === 0) {
       startConversation();
@@ -29,7 +29,7 @@ export default function PtMessages({ p, msgs }) {
 
   const startConversation = async () => {
     try {
-      const res = await fetch("http://localhost:5001/chat", {
+      const res = await fetch("http://localhost:5002/chat", {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
@@ -66,7 +66,7 @@ export default function PtMessages({ p, msgs }) {
     setLoading(true);
 
     try {
-      const res = await fetch("http://localhost:5001/chat", {
+      const res = await fetch("http://localhost:5002/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -170,11 +170,11 @@ export default function PtMessages({ p, msgs }) {
           placeholder="Type your message..."
         />
 
-        <button 
-          onClick={sendMessage} 
-          disabled={loading || !input.trim()} 
-          style={{ 
-            padding: "0 24px", 
+        <button
+          onClick={sendMessage}
+          disabled={loading || !input.trim()}
+          style={{
+            padding: "0 24px",
             borderRadius: 20,
             background: input.trim() && !loading ? C.blue : C.blueDim,
             color: input.trim() && !loading ? "#fff" : C.blue,

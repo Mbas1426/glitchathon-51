@@ -4,6 +4,7 @@ import HomePage from './components/HomePage.jsx';
 import DoctorApp from './components/DoctorApp.jsx';
 import PatientApp from './components/PatientApp.jsx';
 import { C } from './styles/homeStyles.jsx'
+import { SocketProvider } from './SocketContext.jsx';
 
 export const DataContext = createContext(null);
 export const useData = () => useContext(DataContext);
@@ -31,7 +32,7 @@ export const DataProvider = ({ children }) => {
   const [data, setData] = useState(null);
 
   useEffect(() => {
-    fetch("http://localhost:5001/api/data")
+    fetch("http://localhost:5002/api/data")
       .then(res => res.json())
       .then(d => setData(d))
       .catch(console.error);
@@ -85,17 +86,19 @@ export default function CareAgent() {
   const navigate = useNavigate();
 
   return (
-    <DataProvider>
-      <Routes>
-        <Route path="/" element={
-          <HomePage
-            onDoctor={(id) => navigate(`/doctor/${id}/dashboard`)}
-            onPatient={(id) => navigate(`/patient/${id}/overview`)}
-          />
-        } />
-        <Route path="/doctor/:id/*" element={<DoctorRouteWrapper />} />
-        <Route path="/patient/:id/*" element={<PatientRouteWrapper />} />
-      </Routes>
-    </DataProvider>
+    <SocketProvider>
+      <DataProvider>
+        <Routes>
+          <Route path="/" element={
+            <HomePage
+              onDoctor={(id) => navigate(`/doctor/${id}/dashboard`)}
+              onPatient={(id) => navigate(`/patient/${id}/overview`)}
+            />
+          } />
+          <Route path="/doctor/:id/*" element={<DoctorRouteWrapper />} />
+          <Route path="/patient/:id/*" element={<PatientRouteWrapper />} />
+        </Routes>
+      </DataProvider>
+    </SocketProvider>
   );
 }
