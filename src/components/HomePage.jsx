@@ -1,9 +1,10 @@
 import { useState } from "react";
 import {C, h} from '../styles/homeStyles.jsx'
-import { PHYSICIANS, PATIENTS } from "../CareAgent_Combined.jsx";
+import { useData } from "../CareAgent_Combined.jsx";
 import {CSS} from '../styles/css.jsx';
 
 export default function HomePage({ onDoctor, onPatient }) {
+  const { PHYSICIANS, PATIENTS } = useData();
   const [role, setRole] = useState("doctor");
   const [query, setQuery] = useState("");
   const [password, setPassword] = useState("");

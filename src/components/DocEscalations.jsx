@@ -1,9 +1,9 @@
 import { C } from '../styles/homeStyles.jsx'
 import { d } from '../styles/doctorStyles.jsx'
-import { diagIcon } from '../CareAgent_Combined.jsx'
-import { getRiskTier, getRiskColor, getChannelIcon } from "../CareAgent_Combined.jsx";
+import { useData } from "../CareAgent_Combined.jsx";
 
 export default function DocEscalations({ patients, physicians, onEscalate }) {
+	const { getRiskTier, getRiskColor } = useData();
 	return (
 		<div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
 			{patients.length === 0 ? (
@@ -22,13 +22,13 @@ export default function DocEscalations({ patients, physicians, onEscalate }) {
 								<div style={{ width: 38, height: 38, borderRadius: 10, fontSize: 14, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", background: `${rc}18`, color: rc }}>
 									{p.patient_name.split(" ").map(n => n[0]).join("").slice(0, 2)}
 								</div>
-								<span style={{ fontSize: 9, color: C.red, background: C.redDim, padding: "2px 6px", borderRadius: 6, textTransform: "uppercase" }}>⚠ Escalated</span>
+								<span style={{ fontSize: 9, color: C.red, background: C.redDim, padding: "2px 6px", borderRadius: 6, textTransform: "uppercase" }}>Escalated</span>
 							</div>
 							<div style={{ flex: 1 }}>
 								<div style={{ display: "flex", justifyContent: "space-between" }}>
 									<div>
 										<div style={{ fontSize: 14, color: C.text, fontWeight: 700 }}>{p.patient_name}</div>
-										<div style={{ fontSize: 11, color: C.textMuted, marginTop: 2 }}>{diagIcon(p.diagnosis)} {p.diagnosis} · {p.age}y</div>
+										<div style={{ fontSize: 12, color: C.textMuted, marginTop: 4 }}>{p.diagnosis} · {p.age}y</div>
 									</div>
 									<div style={{ textAlign: "right" }}>
 										<div style={{ fontSize: 20, color: C.red, fontWeight: 700 }}>{p.last_value}</div>
@@ -36,7 +36,7 @@ export default function DocEscalations({ patients, physicians, onEscalate }) {
 									</div>
 								</div>
 								<div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 10 }}>
-									{[`${p.overdue_days} days overdue`, `${getChannelIcon(p.preferred_channel)} via ${p.preferred_channel}`, ...(!p.has_smartphone ? ["👨‍👩‍👧 NOK needed"] : [])].map((chip, ci) => (
+									{[`${p.overdue_days} days overdue`, `Contact via ${p.preferred_channel}`, ...(!p.has_smartphone ? ["NOK needed"] : [])].map((chip, ci) => (
 										<span key={ci} style={{ fontSize: 10, padding: "3px 10px", borderRadius: 8, background: C.bgDeep, color: C.textSub }}>{chip}</span>
 									))}
 								</div>

@@ -32,8 +32,8 @@ export const d = {
   dashGrid:    { display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:20 },
   kpiCard:     { background:"#fff", border:`1px solid ${C.border}`, borderRadius:16, padding:20, boxShadow:"0 2px 12px rgba(0,0,0,0.03)" },
   card:        { background:"#fff", border:`1px solid ${C.border}`, borderRadius:16, padding:24, boxShadow:"0 4px 24px rgba(0,0,0,0.04)" },
-  cardHeader:  { display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:16 },
-  cardTitle:   { fontSize:15, color:C.textTitle, fontWeight:600, letterSpacing:"-0.3px" },
+  cardHeader:  { display:"flex", justifyContent:"space-between", alignItems:"center", paddingBottom:16, borderBottom:`1px solid ${C.border}`, marginBottom:20 },
+  cardTitle:   { fontSize:14, color:C.textTitle, fontWeight:600, letterSpacing:"0.5px", textTransform: "uppercase" },
   
   diagCard:    { background:C.bgApp, borderRadius:12, padding:"16px", textAlign:"center", border: `1px solid ${C.border}` },
   protocolRow: { display:"flex", alignItems:"center", gap:12, padding:"12px 16px", background:C.bgApp, borderRadius:12, marginBottom: 8, border: `1px solid ${C.border}` },

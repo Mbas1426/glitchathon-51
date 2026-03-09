@@ -4,11 +4,16 @@ const dotenv = require("dotenv");
 const axios = require("axios");
 const fs = require("fs");
 const path = require("path");
-const { PATIENTS, TEST_HISTORY } = require("./data/patientData");
+
+const getJson = (filename) => {
+  const filepath = path.join(__dirname, "data", filename);
+  if (!fs.existsSync(filepath)) return Array.isArray(filename.match(/msgs|responses|history/)) ? {} : [];
+  return JSON.parse(fs.readFileSync(filepath, "utf-8"));
+};
 
 // Helper to read/write outreach msgs
 const msgsPath = path.join(__dirname, "data", "outreach_msgs.json");
-const getMsgs = () => JSON.parse(fs.readFileSync(msgsPath, "utf-8"));
+const getMsgs = () => getJson("outreach_msgs.json");
 const saveMsgs = (data) => fs.writeFileSync(msgsPath, JSON.stringify(data, null, 2));
 
 const usersPath = path.join(__dirname, "data", "users.json");
@@ -28,6 +33,23 @@ app.use(express.json());
 // Health check
 app.get("/", (req, res) => {
   res.send({ status: "Backend running" });
+});
+
+// Master data endpoint
+app.get("/api/data", (req, res) => {
+  try {
+    res.json({
+      patients: getJson("patients.json"),
+      physicians: getJson("physicians.json"),
+      protocols: getJson("care_protocols.json"),
+      appointments: getJson("appointments.json"),
+      testHistory: getJson("test_history.json"),
+      outreachMsgs: getJson("outreach_msgs.json"),
+      outreachResponses: getJson("outreach_responses.json"),
+    });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to load data from JSON files" });
+  }
 });
 
 // Login endpoint
@@ -90,13 +112,15 @@ app.post("/chat", async (req, res) => {
   }
 
   try {
-    const patient = PATIENTS.find(p => p.patient_id === patient_id);
+    const patientsList = getJson("patients.json");
+    const testHistData = getJson("test_history.json");
+    const patient = patientsList.find(p => p.patient_id === patient_id);
 
     if (!patient) {
       return res.status(404).json({ error: "Patient not found" });
     }
 
-    const testHistory = TEST_HISTORY[patient_id] || [];
+    const testHistory = testHistData[patient_id] || [];
     const outreach = getMsgs()[patient_id] || [];
 
     const apiKey = process.env.GEMINI_API_KEY;
@@ -150,6 +174,11 @@ Instructions:
 - Always sound supportive and caring.
 `;
 
+    const activeApiKey = process.env.GEMINI_API_KEY || process.env["GEMINI_API_KEY-rem-later"];
+    if (!activeApiKey) {
+      return res.status(500).json({ error: "API key is missing" });
+    }
+
     const response = await axios.post(
       "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
       {
@@ -162,7 +191,7 @@ Instructions:
       },
       {
         headers: {
-          Authorization: `Bearer ${apiKey}`,
+          Authorization: `Bearer ${activeApiKey}`,
           "Content-Type": "application/json"
         }
       }

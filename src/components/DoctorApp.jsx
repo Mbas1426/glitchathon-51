@@ -2,7 +2,9 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation, Routes, Route, Navigate, useParams } from "react-router-dom";
 import { C, h } from '../styles/homeStyles.jsx'
 import { d } from '../styles/doctorStyles.jsx'
-import { PHYSICIANS, PATIENTS, CARE_PROTOCOLS, OUTREACH_RESPONSES, getRiskTier } from "../CareAgent_Combined.jsx";
+import { pt } from '../styles/patientStyles.jsx'
+import { CSS } from '../styles/css.jsx'
+import { useData } from "../CareAgent_Combined.jsx";
 import PulseRing from './PulseRing.jsx'
 import DocDashboard from './DocDashboard.jsx'
 import DocPatients from './DocPatients.jsx'
@@ -12,6 +14,7 @@ import DocEscalations from './DocEscalations.jsx'
 import DocPatientModal from './DocPatientModal.jsx'
 
 export default function DoctorApp({ doctor, onLogout }) {
+  const { PHYSICIANS, PATIENTS, CARE_PROTOCOLS, OUTREACH_RESPONSES, getRiskTier } = useData();
   const navigate = useNavigate();
   const location = useLocation();
   const { id } = useParams();
@@ -85,110 +88,66 @@ export default function DoctorApp({ doctor, onLogout }) {
   const closed = myPatients.filter(p => p.status === "closed");
 
   const NAV = [
-    { id: "dashboard", label: "Dashboard", icon: "⬡" },
-    { id: "patients", label: "Patients", icon: "◈" },
-    { id: "outreach", label: "Outreach", icon: "◎" },
-    { id: "gaps", label: "Care Gaps", icon: "▦" },
-    { id: "escalations", label: "Escalations", icon: "△" },
+    { id: "dashboard", label: "Dashboard" },
+    { id: "patients", label: "Patients" },
+    { id: "outreach", label: "Outreach" },
+    { id: "gaps", label: "Care Gaps" },
+    { id: "escalations", label: "Escalations" },
   ];
 
   return (
-    <div style={d.root}>
-      <div style={d.appContainer}>
-        {/* Sidebar */}
-        <aside style={d.sidebar}>
-          <div style={d.logo}>
-            <div style={d.logoMark}><span style={{ fontSize: 20, color: "#fff" }}>✿</span></div>
-            <div>
-              <div style={d.logoTitle}>Manabu</div>
-              <div style={d.logoSub}>CareAgent Dash</div>
-            </div>
-          </div>
-          <div style={d.hospitalBadge}>
-            <div style={{ fontSize: 11, color: C.btnDark, letterSpacing: 1, textTransform: "uppercase", marginBottom: 4, fontWeight: 700 }}>Active Hospital</div>
-            <div style={{ fontSize: 14, color: C.textTitle, fontWeight: 700 }}>Kathir Memorial</div>
-            <div style={{ fontSize: 12, color: C.textMuted }}>Chennai, Tamil Nadu</div>
-          </div>
-          {doctor && (
-            <div style={{ margin: "0 20px 16px", padding: "12px 16px", background: "rgba(93, 95, 239, 0.05)", borderRadius: 16 }}>
-              <div style={{ fontSize: 10, color: C.btnDark, letterSpacing: 1, marginBottom: 4, fontWeight: 700 }}>LOGGED IN AS</div>
-              <div style={{ fontSize: 14, color: C.textTitle, fontWeight: 800 }}>{doctor.physician_name}</div>
-              <div style={{ fontSize: 12, color: C.textMuted }}>{doctor.specialty}</div>
-            </div>
-          )}
-          <nav style={d.nav}>
-            {NAV.map(n => (
-              <button key={n.id} onClick={() => handleTabChange(n.id)} style={{ ...d.navBtn, ...(activeTab === n.id ? d.navActive : {}) }}>
-                <span style={d.navIcon}>{n.icon}</span>
-                <span>{n.label}</span>
-                {n.id === "escalations" && escalated.length > 0 && <span style={d.badge}>{escalated.length}</span>}
-                {n.id === "patients" && overdue.length > 0 && <span style={{ ...d.badge, background: "rgba(255, 107, 107, 0.1)", color: C.red }}>{overdue.length}</span>}
-              </button>
-            ))}
-          </nav>
-          <div style={d.sidebarFooter}>
-            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <PulseRing color="#2ecc71" size={7} />
-              <span style={{ fontSize: 12, color: "#2ecc71", fontWeight: 700 }}>System Active</span>
-            </div>
-            <div style={{ fontSize: 11, color: C.textMuted, marginTop: 4, fontWeight: 600 }}>Last scan: 5 min ago</div>
-            <button onClick={onLogout} style={d.logoutBtn}>Log out</button>
-          </div>
-        </aside>
-
-        {/* Main */}
-        <main style={d.main}>
-          <header style={d.topbar}>
-            <div>
-              <div style={d.pageTitle}>{NAV.find(n => n.id === activeTab)?.label}</div>
-              <div style={{ fontSize: 13, color: C.textMuted, marginTop: 4, fontWeight: 500 }}>{new Date().toLocaleDateString("en-IN", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}</div>
-            </div>
+    <div style={pt.root}>
+      <div style={pt.appContainer}>
+        <style>{CSS}</style>
+        <header style={pt.topbar}>
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <div style={d.logoMark}><span style={{ fontSize: 18, color: "#fff" }}></span></div>
+            <div>
+              <span style={{ fontSize: 16, fontWeight: 600, color: C.textTitle, letterSpacing: "-0.5px" }}>CareAgent</span>
+              <span style={{ fontSize: 13, color: C.textMuted, margin: "0 10px" }}>/</span>
+              <span style={{ fontSize: 13, color: C.textMuted, fontWeight: 500 }}>Doctor Portal</span>
+            </div>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
             <div style={d.searchBox}>
               <span style={{ color: C.textMuted, fontSize: 12 }}>⌕</span>
               <input placeholder="Search patients…" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} style={d.searchInput} />
             </div>
-            <div style={d.avatarBtn}>{doctor ? doctor.physician_name.split(" ").map(n => n[0]).join("").slice(0, 2) : "DR"}</div>
+            <div style={{ textAlign: "right", marginLeft: 16 }}>
+              <div style={{ fontSize: 15, fontWeight: 600, color: C.textTitle }}>Dr. {doctor?.physician_name}</div>
+              <div style={{ fontSize: 12, color: C.textMuted, letterSpacing: 0.5, fontWeight: 400 }}>{doctor?.specialty}</div>
+            </div>
+            <button onClick={onLogout} style={{ fontSize: 13, padding: "8px 16px", border: `1px solid ${C.border}`, background: "rgba(255,255,255,0.5)", cursor: "pointer", color: C.textTitle, borderRadius: 10, fontWeight: 500, transition: "all 0.2s", marginLeft: 12 }}>Sign Out</button>
           </div>
         </header>
 
-        <div style={{ ...d.content, opacity: animIn ? 1 : 0, transform: animIn ? "translateY(0)" : "translateY(8px)", transition: "all 0.2s ease" }}>
-          <Routes>
-            <Route
-              path="dashboard"
-              element={
-                <DocDashboard
-                  patients={myPatients}
-                  critical={critical}
-                  overdue={overdue}
-                  closed={closed}
-                  escalated={escalated}
-                  protocols={CARE_PROTOCOLS}
-                  onNavigate={handleTabChange}
-                />
-              }
-            />
-            <Route
-              path="patients"
-              element={
-                <DocPatients
-                  patients={filtered}
-                  filterRisk={filterRisk}
-                  setFilterRisk={setFilterRisk}
-                  filterDiag={filterDiag}
-                  setFilterDiag={setFilterDiag}
-                  onSelect={setSelectedPatient}
-                  selected={selectedPatient}
-                />
-              }
-            />
-            <Route path="outreach" element={<DocOutreach patients={myPatients} responses={OUTREACH_RESPONSES} onSend={handleSend} sentMsgs={sentMsgs} sendingMsg={sendingMsg} />} />
-            <Route path="gaps" element={<DocCareGaps patients={myPatients} gapsLog={gapsLog} setGapsLog={setGapsLog} showToast={showToast} />} />
-            <Route path="escalations" element={<DocEscalations patients={escalated} physicians={PHYSICIANS} onEscalate={handleEscalate} />} />
-            <Route path="/" element={<Navigate to={`/doctor/${id}/dashboard`} replace />} />
-          </Routes>
+        <nav style={{ background: "rgba(255,255,255,0.5)", borderBottom: `1px solid ${C.border}`, padding: "12px 32px", display: "flex", alignItems: "center", gap: 8, backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)" }}>
+          {NAV.map(n => (
+            <button key={n.id} onClick={() => handleTabChange(n.id)} style={{ padding: "8px 16px", borderRadius: 20, border: "none", background: activeTab === n.id ? "#fff" : "transparent", fontSize: 13, cursor: "pointer", color: activeTab === n.id ? C.textTitle : C.textMuted, transition: "all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275)", fontWeight: activeTab === n.id ? 600 : 500, boxShadow: activeTab === n.id ? "0 2px 8px rgba(0,0,0,0.06), 0 0 0 1px rgba(0,0,0,0.04)" : "none", transform: activeTab === n.id ? "translateY(-1px)" : "translateY(0)", display: "flex", alignItems: "center", gap: 8 }}>
+              {n.label}
+              {n.id === "escalations" && escalated.length > 0 && <span style={d.badge}>{escalated.length}</span>}
+              {n.id === "patients" && overdue.length > 0 && <span style={{ ...d.badge, background: "rgba(255, 107, 107, 0.1)", color: C.red }}>{overdue.length}</span>}
+            </button>
+          ))}
+          <div style={{ flex: 1 }} />
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <PulseRing color="#2ecc71" size={7} />
+            <span style={{ fontSize: 12, color: "#2ecc71", fontWeight: 700 }}>System Active</span>
+          </div>
+        </nav>
+
+        <div style={{ flex: 1, padding: "32px 40px", maxWidth: 1400, width: "100%", margin: "0 auto", overflowY: "auto" }} className="fadeIn" key={activeTab}>
+          <div style={{ opacity: animIn ? 1 : 0, transform: animIn ? "translateY(0)" : "translateY(8px)", transition: "all 0.2s ease" }}>
+            <Routes>
+              <Route path="dashboard" element={ <DocDashboard patients={myPatients} critical={critical} overdue={overdue} closed={closed} escalated={escalated} protocols={CARE_PROTOCOLS} onNavigate={handleTabChange} /> } />
+              <Route path="patients" element={ <DocPatients patients={filtered} filterRisk={filterRisk} setFilterRisk={setFilterRisk} filterDiag={filterDiag} setFilterDiag={setFilterDiag} onSelect={setSelectedPatient} selected={selectedPatient} /> } />
+              <Route path="outreach" element={<DocOutreach patients={myPatients} responses={OUTREACH_RESPONSES} onSend={handleSend} sentMsgs={sentMsgs} sendingMsg={sendingMsg} />} />
+              <Route path="gaps" element={<DocCareGaps patients={myPatients} gapsLog={gapsLog} setGapsLog={setGapsLog} showToast={showToast} />} />
+              <Route path="escalations" element={<DocEscalations patients={escalated} physicians={PHYSICIANS} onEscalate={handleEscalate} />} />
+              <Route path="/" element={<Navigate to={`/doctor/${id}/dashboard`} replace />} />
+            </Routes>
+          </div>
         </div>
-        </main>
       </div>
 
       {toastMsg && (

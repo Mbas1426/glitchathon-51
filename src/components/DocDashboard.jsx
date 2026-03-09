@@ -1,10 +1,11 @@
 import { C } from '../styles/homeStyles.jsx'
 import { d } from '../styles/doctorStyles.jsx'
-import { diagIcon } from '../CareAgent_Combined.jsx'
+import { useData } from '../CareAgent_Combined.jsx'
 import Counter from './Counter.jsx'
 import Sparkline from './Sparkline.jsx'
 
 export default function DocDashboard({ patients, critical, overdue, closed, escalated, protocols, onNavigate }) {
+	const { diagIcon } = useData();
 	const diagBreakdown = ["Diabetes", "CKD", "Hypertension", "Hypothyroidism"].map(dd => ({
 		name: dd,
 		count: patients.filter(p => p.diagnosis === dd).length,
@@ -39,10 +40,10 @@ export default function DocDashboard({ patients, critical, overdue, closed, esca
 				<div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 12, marginTop: 14 }}>
 					{diagBreakdown.map((b, i) => (
 						<div key={i} style={d.diagCard}>
-							<div style={{ fontSize: 24 }}>{b.icon}</div>
-							<div style={{ fontSize: 12, color: C.text, fontWeight: 600, marginTop: 6 }}>{b.name}</div>
-							<div style={{ fontSize: 22, color: C.blue, fontWeight: 700, marginTop: 2 }}>{b.count}</div>
-							<div style={{ fontSize: 10, color: b.overdue > 0 ? C.red : C.textMuted }}>{b.overdue} overdue</div>
+							<div style={{ fontSize: 14, fontWeight: 700, color: C.text }}>{b.icon}</div>
+							<div style={{ fontSize: 11, color: C.textMuted, fontWeight: 600, marginTop: 4, letterSpacing: 0.5, textTransform: "uppercase" }}>{b.name}</div>
+							<div style={{ fontSize: 24, color: C.textTitle, fontWeight: 700, marginTop: 6 }}>{b.count}</div>
+							<div style={{ fontSize: 10, color: b.overdue > 0 ? C.red : C.textMuted, marginTop: 4 }}>{b.overdue} overdue</div>
 						</div>
 					))}
 				</div>
@@ -54,13 +55,13 @@ export default function DocDashboard({ patients, critical, overdue, closed, esca
 				<div style={{ marginTop: 14, display: "flex", flexDirection: "column", gap: 10 }}>
 					{protocols.map((p, i) => (
 						<div key={i} style={d.protocolRow}>
-							<span style={{ fontSize: 16 }}>{diagIcon(p.diagnosis_name)}</span>
+							<div style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 40, height: 40, background: C.bgApp, borderRadius: 10, fontSize: 13, fontWeight: 700, color: C.textTitle }}>{diagIcon(p.diagnosis_name)}</div>
 							<div style={{ flex: 1 }}>
-								<div style={{ fontSize: 12, color: C.text }}>{p.diagnosis_name} — {p.test_name}</div>
-								<div style={{ fontSize: 10, color: C.textMuted }}>Normal: {p.normal_range}</div>
+								<div style={{ fontSize: 13, color: C.textTitle, fontWeight: 600 }}>{p.diagnosis_name} — {p.test_name}</div>
+								<div style={{ fontSize: 11, color: C.textMuted, marginTop: 2 }}>Normal: {p.normal_range}</div>
 							</div>
 							<div style={{ textAlign: "right" }}>
-								<div style={{ fontSize: 11, color: C.blue }}>Every {p.frequency_days}d</div>
+								<div style={{ fontSize: 12, color: C.blue, fontWeight: 500 }}>Every {p.frequency_days}d</div>
 								<div style={{ fontSize: 10, color: C.textMuted }}>Critical ≥ {p.critical_threshold}</div>
 							</div>
 						</div>

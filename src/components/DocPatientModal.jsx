@@ -1,7 +1,8 @@
 import { C } from '../styles/homeStyles.jsx'
-import { PHYSICIANS, CARE_PROTOCOLS, TEST_HISTORY, getRiskTier, getRiskColor, getStatusBadge, diagIcon, getChannelIcon } from "../CareAgent_Combined.jsx";
+import { useData } from "../CareAgent_Combined.jsx";
 
 export default function DocPatientModal({ patient: p, onClose }) {
+	const { PHYSICIANS, CARE_PROTOCOLS, TEST_HISTORY, getRiskTier, getRiskColor, getStatusBadge, diagIcon, getChannelIcon } = useData();
 	const risk = getRiskTier(p); const rc = getRiskColor(risk);
 	const sb = getStatusBadge(p.status);
 	const doc = PHYSICIANS.find(ph => ph.physician_id === p.physician_id);

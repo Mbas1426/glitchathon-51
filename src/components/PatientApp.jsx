@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation, Routes, Route, Navigate, useParams } from "react-router-dom";
-import { getRiskTier, CARE_PROTOCOLS, PHYSICIANS, OUTREACH_MSGS, APPOINTMENTS, TEST_HISTORY, STATUS_MAP } from "../CareAgent_Combined";
+import { useData } from "../CareAgent_Combined";
 import { pt } from '../styles/patientStyles'
 import { C } from '../styles/homeStyles.jsx'
 import { d } from '../styles/doctorStyles.jsx';
@@ -12,6 +12,7 @@ import PtProfile from "./PtProfile.jsx";
 import { CSS } from '../styles/css.jsx';
 
 export default function PatientApp({ patient: p, onLogout }) {
+  const { getRiskTier, CARE_PROTOCOLS, PHYSICIANS, OUTREACH_MSGS, APPOINTMENTS, TEST_HISTORY, STATUS_MAP } = useData();
   const navigate = useNavigate();
   const location = useLocation();
   const { id } = useParams();
@@ -82,9 +83,9 @@ export default function PatientApp({ patient: p, onLogout }) {
         </div>
       )}
 
-      <nav style={{ background: "rgba(255,255,255,0.5)", borderBottom: `1px solid ${C.border}`, padding: "0 32px", display: "flex", alignItems: "center", gap: 0, backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)" }}>
+      <nav style={{ background: "rgba(255,255,255,0.5)", borderBottom: `1px solid ${C.border}`, padding: "12px 32px", display: "flex", alignItems: "center", gap: 8, backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)" }}>
         {TABS.map(t => (
-          <button key={t.id} onClick={() => navigate(`/patient/${id}/${t.id}`)} style={{ padding: "14px 20px", border: "none", borderBottom: `2px solid ${tab === t.id ? C.blue : "transparent"}`, background: "transparent", fontSize: 14, cursor: "pointer", color: tab === t.id ? C.blue : C.textMuted, transition: "all 0.15s", fontWeight: tab === t.id ? 500 : 400 }}>
+          <button key={t.id} onClick={() => navigate(`/patient/${id}/${t.id}`)} style={{ padding: "8px 16px", borderRadius: 20, border: "none", background: tab === t.id ? "#fff" : "transparent", fontSize: 13, cursor: "pointer", color: tab === t.id ? C.textTitle : C.textMuted, transition: "all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275)", fontWeight: tab === t.id ? 600 : 500, boxShadow: tab === t.id ? "0 2px 8px rgba(0,0,0,0.06), 0 0 0 1px rgba(0,0,0,0.04)" : "none", transform: tab === t.id ? "translateY(-1px)" : "translateY(0)" }}>
             {t.label}
           </button>
         ))}
