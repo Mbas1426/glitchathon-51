@@ -1,0 +1,20 @@
+[
+	{
+		"patient_id": 10,
+		"type": "agreed",
+		"message": "Yes, please book the home collection for this Saturday.",
+		"date": "2025-03-07"
+	},
+	{
+		"patient_id": 13,
+		"type": "question",
+		"message": "Is it really urgent? I feel fine.",
+		"date": "2025-03-06"
+	},
+	{
+		"patient_id": 5,
+		"type": "declined",
+		"message": "I'm traveling next month. Will do it later.",
+		"date": "2025-03-08"
+	}
+]

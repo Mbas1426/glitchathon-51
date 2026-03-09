@@ -1,0 +1,52 @@
+{
+	"1": [
+		{
+			"date": "2025-02-10",
+			"msg": "Your HbA1c is 120 days overdue. Last value 9.5% was critically high. Please book a home collection immediately.",
+			"type": "urgent"
+		},
+		{
+			"date": "2025-01-12",
+			"msg": "Reminder: HbA1c test is due. Please schedule at your earliest convenience.",
+			"type": "reminder"
+		}
+	],
+	"8": [
+		{
+			"date": "2025-03-01",
+			"msg": "URGENT: Your HbA1c of 11.2% indicates dangerously uncontrolled diabetes. Dr. Priya Sharma has been alerted. Please call the hospital today.",
+			"type": "urgent"
+		},
+		{
+			"date": "2025-02-01",
+			"msg": "Your HbA1c test is overdue by 130 days. Please respond to schedule a home collection.",
+			"type": "urgent"
+		}
+	],
+	"9": [
+		{
+			"date": "2025-03-02",
+			"msg": "ESCALATED: Creatinine 4.1 mg/dL with 173 days overdue. Dr. Arjun Mehta requires you to attend in-person immediately.",
+			"type": "urgent"
+		}
+	],
+	"10": [
+		{
+			"date": "2025-03-07",
+			"msg": "Your home sample collection has been confirmed for Saturday. Our technician will arrive between 8–10 AM.",
+			"type": "info"
+		},
+		{
+			"date": "2025-02-25",
+			"msg": "TSH test is 43 days overdue. Would you like to book a home collection? Reply YES to confirm.",
+			"type": "reminder"
+		}
+	],
+	"13": [
+		{
+			"date": "2025-03-06",
+			"msg": "We received your query 'Is it really urgent?'. Yes — your Creatinine trend is rising. Early intervention prevents dialysis. Please book today.",
+			"type": "response"
+		}
+	]
+}

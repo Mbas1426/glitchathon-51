@@ -1,0 +1,64 @@
+{
+	"1": [
+		{
+			"date": "2024-07-10",
+			"type": "Test + Consultation",
+			"doc": "Dr. Priya Sharma",
+			"result": "HbA1c: 9.5%"
+		},
+		{
+			"date": "2024-04-22",
+			"type": "Test + Consultation",
+			"doc": "Dr. Priya Sharma",
+			"result": "HbA1c: 9.0%"
+		},
+		{
+			"date": "2024-01-18",
+			"type": "Routine Test",
+			"doc": "Dr. Priya Sharma",
+			"result": "HbA1c: 8.7%"
+		}
+	],
+	"2": [
+		{
+			"date": "2024-06-15",
+			"type": "Nephrology Review",
+			"doc": "Dr. Arjun Mehta",
+			"result": "Creatinine: 3.2 mg/dL"
+		},
+		{
+			"date": "2024-03-20",
+			"type": "Routine Test",
+			"doc": "Dr. Arjun Mehta",
+			"result": "Creatinine: 2.9 mg/dL"
+		}
+	],
+	"8": [
+		{
+			"date": "2024-06-01",
+			"type": "Emergency Review",
+			"doc": "Dr. Priya Sharma",
+			"result": "HbA1c: 11.2% — Insulin started"
+		},
+		{
+			"date": "2024-03-07",
+			"type": "Routine Test",
+			"doc": "Dr. Priya Sharma",
+			"result": "HbA1c: 10.6%"
+		}
+	],
+	"14": [
+		{
+			"date": "2024-09-20",
+			"type": "Routine Test",
+			"doc": "Dr. Priya Sharma",
+			"result": "HbA1c: 6.8% — Well controlled"
+		},
+		{
+			"date": "2024-06-25",
+			"type": "Routine Test",
+			"doc": "Dr. Priya Sharma",
+			"result": "HbA1c: 7.0%"
+		}
+	]
+}

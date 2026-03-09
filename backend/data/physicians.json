@@ -1,0 +1,23 @@
+[
+	{
+		"physician_id": 1,
+		"physician_name": "Dr. Priya Sharma",
+		"specialty": "Endocrinology",
+		"phone": "+91 044-2345-6789",
+		"hospital": "Kathir Memorial Hospital"
+	},
+	{
+		"physician_id": 2,
+		"physician_name": "Dr. Arjun Mehta",
+		"specialty": "Nephrology",
+		"phone": "+91 044-2345-6790",
+		"hospital": "Kathir Memorial Hospital"
+	},
+	{
+		"physician_id": 3,
+		"physician_name": "Dr. Kavitha Nair",
+		"specialty": "Cardiology",
+		"phone": "+91 044-2345-6791",
+		"hospital": "Kathir Memorial Hospital"
+	}
+]
