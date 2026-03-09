@@ -5,10 +5,15 @@ import { getRiskTier, getRiskColor } from "../CareAgent_Combined.jsx";
 
 export default function DocOutreach({ patients, responses, onSend, sentMsgs, sendingMsg }) {
 	const [expanded, setExpanded] = useState(null);
+	const [customMsgs, setCustomMsgs] = useState({});
 
 	const overdueList = patients.filter(p => p.status === "overdue" || p.status === "escalated" || p.status === "pending");
 	const genMsg = (p) =>
 		`Dear ${p.patient_name.split(" ")[0]}, your ${p.last_test} test is now ${p.overdue_days} days overdue. Your last value was ${p.last_value}. Delaying monitoring for ${p.diagnosis} can lead to serious complications. We offer FREE home sample collection — reply YES to book. — Kathir Memorial Care Team`;
+
+	const handleMsgChange = (pid, val) => {
+		setCustomMsgs(prev => ({ ...prev, [pid]: val }));
+	};
 
 	return (
 		<div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
@@ -35,6 +40,7 @@ export default function DocOutreach({ patients, responses, onSend, sentMsgs, sen
 				const isSent = sentMsgs.includes(p.patient_id);
 				const isSending = sendingMsg === p.patient_id;
 				const isExp = expanded === p.patient_id;
+				const currentMsg = customMsgs[p.patient_id] ?? genMsg(p);
 
 				return (
 					<div key={p.patient_id} style={{ background: C.bgCard, border: `1px solid ${C.border}`, borderLeft: `3px solid ${rc}`, borderRadius: 14, padding: 16, transition: "border-color 0.2s" }}>
@@ -74,8 +80,22 @@ export default function DocOutreach({ patients, responses, onSend, sentMsgs, sen
 						{isExp && (
 							<div style={{ marginTop: 14, paddingTop: 14, borderTop: `1px solid ${C.border}` }}>
 								<div style={{ background: C.bgDeep, borderRadius: 10, padding: 12, border: `1px solid ${C.border}` }}>
-									<div style={{ fontSize: 10, color: C.textMuted, marginBottom: 6, letterSpacing: 1, textTransform: "uppercase" }}>Message Preview</div>
-									<div style={{ fontSize: 11, color: C.textSub, lineHeight: 1.7 }}>{genMsg(p)}</div>
+									<div style={{ fontSize: 10, color: C.textMuted, marginBottom: 6, letterSpacing: 1, textTransform: "uppercase" }}>Edit Message</div>
+									<textarea
+										style={{
+											width: "100%",
+											minHeight: "80px",
+											fontSize: "11px",
+											color: C.textSub,
+											lineHeight: 1.7,
+											background: "transparent",
+											border: "none",
+											outline: "none",
+											resize: "vertical"
+										}}
+										value={currentMsg}
+										onChange={(e) => handleMsgChange(p.patient_id, e.target.value)}
+									/>
 								</div>
 								{resp && (
 									<div style={{ background: C.blueFaint, border: `1px solid ${C.blue}30`, borderRadius: 10, padding: 12, marginTop: 10 }}>
@@ -94,7 +114,10 @@ export default function DocOutreach({ patients, responses, onSend, sentMsgs, sen
 								)}
 								<div style={{ display: "flex", gap: 8, marginTop: 12 }}>
 									<button
-										onClick={() => onSend(p.patient_id)}
+										onClick={async () => {
+											const success = await onSend(p.patient_id, currentMsg);
+											if (success) handleMsgChange(p.patient_id, "");
+										}}
 										disabled={isSent || isSending}
 										style={{
 											background: `linear-gradient(135deg,#1565a8,#2980c4)`, border: "none", color: "#fff", padding: "8px 18px", borderRadius: 9, cursor: "pointer", fontSize: 11, fontWeight: 600,

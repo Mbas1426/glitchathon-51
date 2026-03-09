@@ -7,7 +7,7 @@ export default function DocPatientModal({ patient: p, onClose }) {
 	const doc = PHYSICIANS.find(ph => ph.physician_id === p.physician_id);
 	const proto = CARE_PROTOCOLS.find(c => c.diagnosis_name === p.diagnosis);
 	const bad = proto && p.last_value >= proto.critical_threshold;
-	const hist = TEST_HISTORY[p.patient_id] || [];
+	const hist = [...(TEST_HISTORY[p.patient_id] || [])].reverse();
 
 	return (
 		<div

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useLocation, Routes, Route, Navigate, useParams } from "react-router-dom";
 import { getRiskTier, CARE_PROTOCOLS, PHYSICIANS, OUTREACH_MSGS, APPOINTMENTS, TEST_HISTORY, STATUS_MAP } from "../CareAgent_Combined";
 import { pt } from '../styles/patientStyles'
@@ -14,14 +14,30 @@ import { CSS } from '../styles/css.jsx';
 export default function PatientApp({ patient: p, onLogout }) {
   const navigate = useNavigate();
   const location = useLocation();
-
   const { id } = useParams();
+
+  const [msgs, setMsgs] = useState(OUTREACH_MSGS[p.patient_id] || []);
+
+  useEffect(() => {
+    const fetchMsgs = async () => {
+      try {
+        const res = await fetch(`http://localhost:5000/outreach/${p.patient_id}`);
+        if (res.ok) {
+          const data = await res.json();
+          setMsgs(data);
+        }
+      } catch (err) {
+        console.error("Failed to fetch messages:", err);
+      }
+    };
+    fetchMsgs();
+  }, [p.patient_id]);
+
   const pathParts = location.pathname.split('/');
   const tab = pathParts[pathParts.indexOf(id) + 1] || "overview";
   const risk = getRiskTier(p);
   const proto = CARE_PROTOCOLS.find(c => c.diagnosis_name === p.diagnosis);
   const doc = PHYSICIANS.find(ph => ph.physician_id === p.physician_id);
-  const msgs = OUTREACH_MSGS[p.patient_id] || [];
   const appts = APPOINTMENTS[p.patient_id] || [];
   const hist = TEST_HISTORY[p.patient_id] || [];
   const isUrgent = p.status === "escalated";

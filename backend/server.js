@@ -2,7 +2,14 @@ const express = require("express");
 const cors = require("cors");
 const dotenv = require("dotenv");
 const axios = require("axios");
-const { PATIENTS, TEST_HISTORY, OUTREACH_MSGS } = require("./data/patientData");
+const fs = require("fs");
+const path = require("path");
+const { PATIENTS, TEST_HISTORY } = require("./data/patientData");
+
+// Helper to read/write outreach msgs
+const msgsPath = path.join(__dirname, "data", "outreach_msgs.json");
+const getMsgs = () => JSON.parse(fs.readFileSync(msgsPath, "utf-8"));
+const saveMsgs = (data) => fs.writeFileSync(msgsPath, JSON.stringify(data, null, 2));
 
 dotenv.config();
 
@@ -16,6 +23,34 @@ app.use(express.json());
 // Health check
 app.get("/", (req, res) => {
   res.send({ status: "Backend running" });
+});
+
+// Outreach endpoints
+app.get("/outreach/:patient_id", (req, res) => {
+  const { patient_id } = req.params;
+  const msgs = getMsgs();
+  res.json(msgs[patient_id] || []);
+});
+
+app.post("/doctor/send-outreach", (req, res) => {
+  const { patient_id, message, type = "urgent" } = req.body;
+
+  if (!patient_id || !message) {
+    return res.status(400).json({ error: "Patient ID and message are required" });
+  }
+
+  const msgs = getMsgs();
+  const newMsg = {
+    date: new Date().toISOString().slice(0, 10),
+    msg: message,
+    type: type
+  };
+
+  if (!msgs[patient_id]) msgs[patient_id] = [];
+  msgs[patient_id].unshift(newMsg); // Newest first
+
+  saveMsgs(msgs);
+  res.json({ success: true, message: newMsg });
 });
 
 // Chat endpoint
@@ -34,7 +69,7 @@ app.post("/chat", async (req, res) => {
     }
 
     const testHistory = TEST_HISTORY[patient_id] || [];
-    const outreach = OUTREACH_MSGS[patient_id] || [];
+    const outreach = getMsgs()[patient_id] || [];
 
     const apiKey = process.env.GEMINI_API_KEY;
 

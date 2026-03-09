@@ -9,6 +9,11 @@ export default function PtMessages({ p, msgs }) {
   const [loading, setLoading] = useState(false);
   const endRef = useRef(null);
 
+  // Sync messages with props whenever outreach updates
+  useEffect(() => {
+    setMessages(msgs);
+  }, [msgs]);
+
   // Scroll to bottom on new message
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -96,7 +101,7 @@ export default function PtMessages({ p, msgs }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
       <div style={{ maxHeight: 300, overflowY: "auto", padding: "6px 12px", background: "#f7f7f7", borderRadius: 8 }}>
-        {messages.map((m, i) => (
+        {[...messages].reverse().map((m, i) => (
           <div key={i} style={{ textAlign: m.type === "user" ? "right" : "left", margin: "4px 0" }}>
             <span
               style={{
