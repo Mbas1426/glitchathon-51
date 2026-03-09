@@ -1,4 +1,4 @@
-function PtMiniChart({ hist, threshold }) {
+export default function PtMiniChart({ hist, threshold }) {
   const maxVal = Math.max(...hist.map(h=>h.value)) * 1.15;
   return (
     <div style={{ paddingTop:8 }}>

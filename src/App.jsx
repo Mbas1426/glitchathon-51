@@ -1,7 +1,7 @@
-import CareAgent_Combined from "./CareAgent_Combined";
+import CareAgent from "./CareAgent_Combined";
 
 function App() {
-  return <CareAgent_Combined />;
+  return <CareAgent />;
 }
 
 export default App;
