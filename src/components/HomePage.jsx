@@ -4,6 +4,45 @@ import { useData } from "../CareAgent_Combined.jsx";
 import {CSS} from '../styles/css.jsx';
 
 export default function HomePage({ onDoctor, onPatient }) {
+  const SvgBackground = () => (
+    <svg 
+      style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', zIndex: 0, pointerEvents: 'none' }} 
+      preserveAspectRatio="xMidYMid slice" 
+      viewBox="0 0 1440 900" 
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <defs>
+        <linearGradient id="gradOrangeTop" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#FF3b30" />
+          <stop offset="100%" stopColor="#FF9500" />
+        </linearGradient>
+        <linearGradient id="gradOrangeBot" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stopColor="#FF9500" />
+          <stop offset="100%" stopColor="#FF3B30" />
+        </linearGradient>
+      </defs>
+      
+      <rect width="1440" height="900" fill="#ffffff" />
+      
+      {/* Light gray wave */}
+      <path fill="#F4F6F9" d="M0,900 L0,700 C400,600 500,800 900,600 C1200,450 1350,550 1440,450 L1440,900 Z" />
+      <path fill="#EAECEF" d="M0,900 L0,750 C300,700 400,850 800,750 C1100,650 1300,800 1440,700 L1440,900 Z" opacity="0.6" />
+      
+      {/* Top Right Dark Blue */}
+      <path fill="#2E557A" d="M600,0 C800,250 1100,150 1440,300 L1440,0 Z" />
+      
+      {/* Top Left Orange */}
+      <path fill="url(#gradOrangeTop)" d="M0,0 L600,0 C500,150 600,250 400,350 C250,425 250,550 0,550 Z" />
+      <path fill="#FF3B30" opacity="0.8" d="M0,0 L450,0 C350,150 400,250 250,350 C100,450 100,500 0,400 Z" />
+      
+      {/* Bottom Right Orange */}
+      <path fill="url(#gradOrangeBot)" d="M800,900 C900,750 1000,850 1150,650 C1250,500 1350,450 1440,550 L1440,900 Z" />
+      
+      {/* Blue Pill */}
+      <rect x="-30" y="650" width="230" height="70" rx="35" fill="#297FC6" />
+    </svg>
+  );
+
   const { PHYSICIANS, PATIENTS } = useData();
   const [role, setRole] = useState("doctor");
   const [query, setQuery] = useState("");
@@ -33,7 +72,7 @@ export default function HomePage({ onDoctor, onPatient }) {
     const id = role === "doctor" ? selectedUser.physician_id : selectedUser.patient_id;
     
     try {
-      const res = await fetch("http://localhost:5000/login", {
+      const res = await fetch("http://localhost:5001/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ role, id, password })
@@ -57,10 +96,8 @@ export default function HomePage({ onDoctor, onPatient }) {
     <div style={h.root}>
       <style>{CSS}</style>
 
-      {/* Cloud-like Background Decorators */}
-      <div style={h.arcDeco} />
-      <div style={h.cloud1} />
-      <div style={h.cloud2} />
+      {/* Modern Theme Background */}
+      <SvgBackground />
 
       {/* Brand Corner */}
       <div style={h.brandCorner}>

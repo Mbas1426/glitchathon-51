@@ -1,12 +1,12 @@
 export const C = {
-  bgApp:       "#f5f5f7", 
-  bgCard:      "rgba(255, 255, 255, 0.7)",
+  bgApp:       "#ffffff", 
+  bgCard:      "rgba(255, 255, 255, 0.9)",
   textTitle:   "#1d1d1f", 
   textMuted:   "#86868b", 
   inputBg:     "rgba(0, 0, 0, 0.04)", 
   border:      "rgba(0, 0, 0, 0.08)", 
   btnDark:     "#000000", 
-  blue:        "#0071E3", 
+  blue:        "#297FC6", 
   red:         "#FF3B30", 
   bgDeep:      "#ffffff",
   appleGradient: "linear-gradient(135deg, #0071e3, #5ac8fa)"
@@ -15,12 +15,7 @@ export const C = {
 export const h = {
   root: { minHeight: "100vh", minWidth: "100vw", background: C.bgApp, display: "flex", alignItems: "center", justifyContent: "center", position: "relative", overflow: "hidden" },
   
-  // High-fidelity glowing ambient background for the login page
-  arcDeco: { position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -40%)", width: "1000px", height: "1000px", borderRadius: "50%", background: "radial-gradient(circle, rgba(0, 113, 227, 0.03) 0%, transparent 70%)", pointerEvents: "none", zIndex: 0 },
-  cloud1: { position: "absolute", top: "-10%", left: "-5%", width: "400px", height: "400px", background: "radial-gradient(circle, rgba(0, 113, 227, 0.05) 0%, rgba(255,255,255,0) 70%)", filter: "blur(60px)", pointerEvents: "none", zIndex: 0 },
-  cloud2: { position: "absolute", bottom: "-10%", right: "-5%", width: "500px", height: "500px", background: "radial-gradient(circle, rgba(90, 200, 250, 0.04) 0%, rgba(255,255,255,0) 70%)", filter: "blur(70px)", pointerEvents: "none", zIndex: 0 },
-
-  card: { zIndex: 1, background: C.bgCard, borderRadius: 24, padding: "48px", width: "100%", maxWidth: 360, display: "flex", flexDirection: "column", alignItems: "center", boxShadow: "0 4px 60px rgba(0,0,0,0.06), inset 0 0 0 1px rgba(255,255,255,0.4)", backdropFilter: "blur(30px)", WebkitBackdropFilter: "blur(30px)" },
+  card: { zIndex: 1, background: C.bgCard, borderRadius: 24, padding: "48px", width: "100%", maxWidth: 440, display: "flex", flexDirection: "column", alignItems: "center", boxShadow: "0 16px 60px rgba(0,0,0,0.1), inset 0 0 0 1px rgba(255,255,255,0.8)", backdropFilter: "blur(40px)", WebkitBackdropFilter: "blur(40px)" },
   
   iconTop: { width: 56, height: 56, borderRadius: "50%", background: C.appleGradient, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 24, color: "#fff", boxShadow: "0 8px 16px rgba(0,113,227,0.2)" },
   

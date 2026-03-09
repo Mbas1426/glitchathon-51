@@ -1,9 +1,9 @@
 export const CSS = `
-  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Merriweather:ital,opsz,wght@0,18..144,300..900;1,18..144,300..900&family=Orbitron:wght@400..900&display=swap');
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { 
     background: linear-gradient(135deg, #f5f5f7, #eef1f6); 
-    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", sans-serif;
+    font-family: 'Merriweather', serif;
     -webkit-font-smoothing: antialiased;
   }
   @keyframes fadeSlide {

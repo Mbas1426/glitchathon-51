@@ -24,7 +24,7 @@ const saveUsers = (data) => fs.writeFileSync(usersPath, JSON.stringify(data, nul
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5001;
 
 // Middleware
 app.use(cors());
@@ -56,10 +56,10 @@ app.get("/api/data", (req, res) => {
 app.post("/login", (req, res) => {
   const { role, id, password } = req.body;
   if (!id || !password || !role) return res.status(400).json({ error: "Missing credentials" });
-  
+
   const users = getUsers();
   const userKey = `${role}_${id}`;
-  
+
   if (!users[userKey]) {
     // First time login, save password
     users[userKey] = password;
