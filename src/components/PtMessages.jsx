@@ -1,62 +1,138 @@
-import {pt} from '../styles/patientStyles.jsx';
-import {C} from '../styles/homeStyles.jsx';
-import { useState } from "react";
+import { pt } from '../styles/patientStyles.jsx';
+import { C } from '../styles/homeStyles.jsx';
+import { useState, useRef, useEffect } from "react";
 
 export default function PtMessages({ p, msgs }) {
-  const [reply, setReply] = useState("");
-  const [sent, setSent]   = useState([]);
-  const [typing, setTyping] = useState(false);
-  const handleSend = () => {
-    if (!reply.trim()) return;
-    setTyping(true);
-    setSent(prev => [...prev, { text:reply, date:new Date().toISOString().slice(0,10) }]);
-    setReply("");
-    setTimeout(() => setTyping(false), 1200);
+
+  const [messages, setMessages] = useState(msgs);
+  const [input, setInput] = useState("");
+  const [loading, setLoading] = useState(false);
+  const endRef = useRef(null);
+
+  // Scroll to bottom on new message
+  useEffect(() => {
+    endRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+  // AI sends first message when chat opens
+  useEffect(() => {
+    if (messages.length === 0) startConversation();
+  }, []);
+
+  const startConversation = async () => {
+    try {
+      const res = await fetch("http://localhost:5000/chat", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          message: "START_CONVERSATION",
+          patient_id: p.patient_id
+        })
+      });
+
+      const data = await res.json();
+
+      const botMsg = {
+        date: new Date().toISOString(),
+        msg: data.reply || "Hello! I'm your care assistant.",
+        type: "bot"
+      };
+
+      setMessages((prev) => [...prev, botMsg]);
+    } catch (err) {
+      console.error("Start conversation error:", err);
+    }
   };
-  const allMsgs = [...(msgs||[])].reverse();
-  const msgBorderColor = (type) => type==="urgent"?C.red:type==="reminder"?C.orange:type==="info"?C.blue:C.green;
+
+  const sendMessage = async () => {
+    if (!input.trim()) return;
+
+    const userText = input;
+
+    // Add user message
+    const userMsg = { date: new Date().toISOString(), msg: userText, type: "user" };
+    setMessages((prev) => [...prev, userMsg]);
+    setInput("");
+    setLoading(true);
+
+    try {
+      const res = await fetch("http://localhost:5000/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message: userText,
+          patient_id: p.patient_id
+        })
+      });
+
+      if (!res.ok) throw new Error("Network response was not ok");
+
+      const data = await res.json();
+
+      const botMsg = {
+        date: new Date().toISOString(),
+        msg: data.reply || "No reply",
+        type: "bot"
+      };
+
+      setMessages((prev) => [...prev, botMsg]);
+    } catch (err) {
+      console.error(err);
+
+      const errorMsg = {
+        date: new Date().toISOString(),
+        msg: "Error: Could not get response",
+        type: "bot"
+      };
+
+      setMessages((prev) => [...prev, errorMsg]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <div style={{ display:"flex", flexDirection:"column", gap:16 }}>
-      <div style={pt.card}>
-        <div style={pt.cardLabel}>MESSAGES FROM KATHIR MEMORIAL HOSPITAL</div>
-        {allMsgs.length===0 && <div style={{ fontSize:11, color:C.textMuted, padding:"16px 0" }}>No messages yet.</div>}
-        <div style={{ display:"flex", flexDirection:"column", gap:10, marginTop:allMsgs.length?12:0 }}>
-          {allMsgs.map((m,i) => (
-            <div key={i} style={{ padding:"12px 14px", background:C.bgDeep, borderLeft:`3px solid ${msgBorderColor(m.type)}`, borderRadius:"0 8px 8px 0" }}>
-              <div style={{ display:"flex", gap:10, alignItems:"center", marginBottom:8 }}>
-                <span style={{ fontSize:8, fontWeight:700, letterSpacing:2, color:C.textMuted }}>CARE TEAM · {p.preferred_channel}</span>
-                <span style={{ fontSize:9, color:C.textDim }}>{m.date}</span>
-                {m.type==="urgent"   && <span style={{ fontSize:8, padding:"1px 6px", border:`1px solid ${C.red}`,    color:C.red,    letterSpacing:1, borderRadius:4 }}>URGENT</span>}
-                {m.type==="reminder" && <span style={{ fontSize:8, padding:"1px 6px", border:`1px solid ${C.orange}`, color:C.orange, letterSpacing:1, borderRadius:4 }}>REMINDER</span>}
-                {m.type==="info"     && <span style={{ fontSize:8, padding:"1px 6px", border:`1px solid ${C.blue}`,   color:C.blue,   letterSpacing:1, borderRadius:4 }}>INFO</span>}
-                {m.type==="response" && <span style={{ fontSize:8, padding:"1px 6px", border:`1px solid ${C.green}`,  color:C.green,  letterSpacing:1, borderRadius:4 }}>REPLY</span>}
-              </div>
-              <div style={{ fontSize:12, color:C.textSub, lineHeight:1.8 }}>{m.msg}</div>
-            </div>
-          ))}
-          {sent.map((m,i) => (
-            <div key={`s${i}`} style={{ padding:"12px 14px", background:C.blueFaint, borderLeft:`3px solid ${C.blue}`, borderRadius:"0 8px 8px 0", marginLeft:32 }}>
-              <div style={{ display:"flex", gap:10, alignItems:"center", marginBottom:8 }}><span style={{ fontSize:8, fontWeight:700, letterSpacing:2, color:C.textMuted }}>YOU</span><span style={{ fontSize:9, color:C.textDim }}>{m.date}</span></div>
-              <div style={{ fontSize:12, color:C.textSub, lineHeight:1.8 }}>{m.text}</div>
-            </div>
-          ))}
-          {typing && <div style={{ padding:"12px 14px", background:C.bgDeep, borderLeft:`3px solid ${C.border}`, borderRadius:"0 8px 8px 0" }}><div style={{ fontSize:8, fontWeight:700, letterSpacing:2, color:C.textMuted, marginBottom:8 }}>CARE TEAM</div><div style={{ fontSize:12, color:C.textDimmer, letterSpacing:3 }}>. . .</div></div>}
-        </div>
+    <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+      <div style={{ maxHeight: 300, overflowY: "auto", padding: "6px 12px", background: "#f7f7f7", borderRadius: 8 }}>
+        {messages.map((m, i) => (
+          <div key={i} style={{ textAlign: m.type === "user" ? "right" : "left", margin: "4px 0" }}>
+            <span
+              style={{
+                background: m.type === "user" ? "#d0f0fd" : "#eee",
+                padding: "4px 8px",
+                borderRadius: 6,
+                display: "inline-block",
+              }}
+            >
+              {m.msg}
+            </span>
+          </div>
+        ))}
+        <div ref={endRef} />
       </div>
-      <div style={pt.card}>
-        <div style={pt.cardLabel}>REPLY TO CARE TEAM</div>
-        <div style={{ display:"flex", flexDirection:"column", gap:10, marginTop:4 }}>
-          <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
-            {["YES, book home collection","Need to reschedule","I have a question"].map((q,i) => (
-              <button key={i} onClick={() => setReply(q)} style={{ fontSize:10, padding:"6px 12px", border:`1px solid ${C.border}`, background:C.bgDeep, cursor:"pointer", fontFamily:"monospace", color:C.textSub, borderRadius:8 }}>{q}</button>
-            ))}
-          </div>
-          <div style={{ display:"flex", gap:10, alignItems:"flex-end" }}>
-            <textarea value={reply} onChange={e=>setReply(e.target.value)} placeholder="Type your message…" style={{ flex:1, border:`1px solid ${C.border}`, borderRadius:8, padding:"10px 12px", fontSize:11, fontFamily:"monospace", outline:"none", resize:"none", color:C.text, background:C.bgDeep }} rows={3} />
-            <button onClick={handleSend} style={{ padding:"10px 18px", background:`linear-gradient(135deg,#1565a8,#2980c4)`, color:"#fff", border:"none", borderRadius:9, fontSize:11, fontFamily:"monospace", cursor:"pointer", letterSpacing:1, fontWeight:700, flexShrink:0 }}>SEND →</button>
-          </div>
-        </div>
-        <div style={{ fontSize:9, color:C.textMuted, marginTop:4 }}>Messages are delivered via {p.preferred_channel}. Response time: within 24 hours.</div>
+
+      <div style={{ display: "flex", gap: 6 }}>
+        <input
+          type="text"
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          style={{
+            flex: 1,
+            padding: "6px 8px",
+            borderRadius: 6,
+            border: "1px solid #ccc",
+            background: "#f0f0f0",
+            color: "#111"
+          }}
+          onKeyDown={(e) => e.key === "Enter" && sendMessage()}
+          placeholder="Type your message..."
+        />
+
+        <button onClick={sendMessage} disabled={loading} style={{ padding: "6px 12px", borderRadius: 6 }}>
+          {loading ? "..." : "Send"}
+        </button>
       </div>
     </div>
   );
