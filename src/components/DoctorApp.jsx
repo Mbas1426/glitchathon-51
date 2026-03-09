@@ -42,8 +42,32 @@ export default function DoctorApp({ doctor, onLogout }) {
       setAnimIn(true);
     }, 150);
   };
-  const handleSend = (pid) => {
-    setSendingMsg(pid); setTimeout(() => { setSentMsgs(prev => [...prev, pid]); setSendingMsg(null); showToast("Outreach message sent!"); }, 1800);
+  const handleSend = async (pid, msg) => {
+    setSendingMsg(pid);
+    try {
+      const res = await fetch("http://localhost:5000/doctor/send-outreach", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ patient_id: pid, message: msg })
+      });
+      if (res.ok) {
+        setSentMsgs(prev => [...prev, pid]);
+        showToast("Outreach message sent!");
+        setTimeout(() => {
+          setSentMsgs(prev => prev.filter(id => id !== pid));
+        }, 3000);
+        return true;
+      } else {
+        showToast("Failed to send message", "warning");
+        return false;
+      }
+    } catch (err) {
+      console.error(err);
+      showToast("Server error", "warning");
+      return false;
+    } finally {
+      setSendingMsg(null);
+    }
   };
   const handleEscalate = (p) => { const doc = PHYSICIANS.find(ph => ph.physician_id === p.physician_id); showToast(`Escalated to ${doc?.physician_name}`, "warning"); };
 
