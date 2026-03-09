@@ -100,8 +100,8 @@ export default function PtMessages({ p, msgs }) {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-      <div style={{ maxHeight: 300, overflowY: "auto", padding: "6px 12px", background: "#f7f7f7", borderRadius: 8 }}>
-        {[...messages].reverse().map((m, i) => (
+      <div style={{ maxHeight: 300, overflowY: "auto", padding: "12px 16px", background: "#f5f5f7", borderRadius: 16, border: "1px solid rgba(0,0,0,0.08)" }}>
+        {messages.map((m, i) => (
           <div key={i} style={{ textAlign: m.type === "user" ? "right" : "left", margin: "4px 0" }}>
             <span
               style={{

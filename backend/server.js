@@ -11,6 +11,11 @@ const msgsPath = path.join(__dirname, "data", "outreach_msgs.json");
 const getMsgs = () => JSON.parse(fs.readFileSync(msgsPath, "utf-8"));
 const saveMsgs = (data) => fs.writeFileSync(msgsPath, JSON.stringify(data, null, 2));
 
+const usersPath = path.join(__dirname, "data", "users.json");
+if (!fs.existsSync(usersPath)) fs.writeFileSync(usersPath, JSON.stringify({}));
+const getUsers = () => JSON.parse(fs.readFileSync(usersPath, "utf-8"));
+const saveUsers = (data) => fs.writeFileSync(usersPath, JSON.stringify(data, null, 2));
+
 dotenv.config();
 
 const app = express();
@@ -23,6 +28,29 @@ app.use(express.json());
 // Health check
 app.get("/", (req, res) => {
   res.send({ status: "Backend running" });
+});
+
+// Login endpoint
+app.post("/login", (req, res) => {
+  const { role, id, password } = req.body;
+  if (!id || !password || !role) return res.status(400).json({ error: "Missing credentials" });
+  
+  const users = getUsers();
+  const userKey = `${role}_${id}`;
+  
+  if (!users[userKey]) {
+    // First time login, save password
+    users[userKey] = password;
+    saveUsers(users);
+    return res.json({ success: true, isNew: true });
+  } else {
+    // Validate password
+    if (users[userKey] === password) {
+      return res.json({ success: true });
+    } else {
+      return res.status(401).json({ error: "Invalid password" });
+    }
+  }
 });
 
 // Outreach endpoints

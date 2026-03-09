@@ -53,23 +53,24 @@ export default function PatientApp({ patient: p, onLogout }) {
 
   return (
     <div style={pt.root}>
-      <style>{CSS}</style>
-      <header style={pt.topbar}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <div style={d.logoMark}><span style={{ fontSize: 16, color: "#fff" }}>✚</span></div>
-          <div>
-            <span style={{ fontSize: 12, fontWeight: 700, color: C.text }}>CareAgent</span>
-            <span style={{ fontSize: 12, color: C.textDimmer, margin: "0 6px" }}>/</span>
-            <span style={{ fontSize: 12, color: C.textMuted }}>Patient Portal</span>
+      <div style={pt.appContainer}>
+        <style>{CSS}</style>
+        <header style={pt.topbar}>
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <div style={d.logoMark}><span style={{ fontSize: 18, color: "#fff" }}></span></div>
+            <div>
+              <span style={{ fontSize: 16, fontWeight: 600, color: C.textTitle, letterSpacing: "-0.5px" }}>CareAgent</span>
+              <span style={{ fontSize: 13, color: C.textMuted, margin: "0 10px" }}>/</span>
+              <span style={{ fontSize: 13, color: C.textMuted, fontWeight: 500 }}>Patient Portal</span>
+            </div>
           </div>
-        </div>
         <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
           <div style={{ textAlign: "right" }}>
-            <div style={{ fontSize: 12, fontWeight: 700, color: C.text }}>{p.patient_name}</div>
-            <div style={{ fontSize: 9, color: C.textMuted, letterSpacing: 1 }}>#{String(p.patient_id).padStart(4, "0")} · {p.diagnosis}</div>
+            <div style={{ fontSize: 15, fontWeight: 600, color: C.textTitle }}>{p.patient_name}</div>
+            <div style={{ fontSize: 12, color: C.textMuted, letterSpacing: 0.5, fontWeight: 400 }}>#{String(p.patient_id).padStart(4, "0")} · {p.diagnosis}</div>
           </div>
-          <span style={{ fontSize: 9, padding: "3px 8px", border: `1px solid ${isUrgent ? C.red : isOverdue ? C.orange : C.border}`, color: isUrgent ? C.red : isOverdue ? C.orange : C.textMuted, borderRadius: 6, letterSpacing: 1, fontWeight: isUrgent ? 700 : 400 }}>{STATUS_MAP[p.status]}</span>
-          <button onClick={onLogout} style={{ fontSize: 10, padding: "5px 10px", border: `1px solid ${C.border}`, background: "transparent", cursor: "pointer", color: C.textMuted, borderRadius: 7 }}>Sign Out</button>
+          <span style={{ fontSize: 11, padding: "4px 10px", border: `1px solid ${isUrgent ? C.red : isOverdue ? "#FF9500" : C.border}`, color: isUrgent ? C.red : isOverdue ? "#FF9500" : C.textMuted, borderRadius: 8, letterSpacing: 0.5, fontWeight: 500 }}>{STATUS_MAP[p.status]}</span>
+          <button onClick={onLogout} style={{ fontSize: 13, padding: "8px 16px", border: `1px solid ${C.border}`, background: "rgba(255,255,255,0.5)", cursor: "pointer", color: C.textTitle, borderRadius: 10, fontWeight: 500, transition: "all 0.2s" }}>Sign Out</button>
         </div>
       </header>
 
@@ -81,17 +82,17 @@ export default function PatientApp({ patient: p, onLogout }) {
         </div>
       )}
 
-      <nav style={{ background: C.bgCard, borderBottom: `1px solid ${C.border}`, padding: "0 28px", display: "flex", alignItems: "center", gap: 0 }}>
+      <nav style={{ background: "rgba(255,255,255,0.5)", borderBottom: `1px solid ${C.border}`, padding: "0 32px", display: "flex", alignItems: "center", gap: 0, backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)" }}>
         {TABS.map(t => (
-          <button key={t.id} onClick={() => navigate(`/patient/${id}/${t.id}`)} style={{ padding: "12px 16px", border: "none", borderBottom: `2px solid ${tab === t.id ? C.blue : "transparent"}`, background: "transparent", fontSize: 11, fontFamily: "monospace", cursor: "pointer", color: tab === t.id ? C.blue : C.textMuted, letterSpacing: 0.5, transition: "all 0.15s", fontWeight: tab === t.id ? 700 : 400 }}>
+          <button key={t.id} onClick={() => navigate(`/patient/${id}/${t.id}`)} style={{ padding: "14px 20px", border: "none", borderBottom: `2px solid ${tab === t.id ? C.blue : "transparent"}`, background: "transparent", fontSize: 14, cursor: "pointer", color: tab === t.id ? C.blue : C.textMuted, transition: "all 0.15s", fontWeight: tab === t.id ? 500 : 400 }}>
             {t.label}
           </button>
         ))}
         <div style={{ flex: 1 }} />
-        <div style={{ fontSize: 9, color: C.textDimmer, letterSpacing: 1 }}>Kathir Memorial · Chennai</div>
+        <div style={{ fontSize: 12, color: C.textMuted, letterSpacing: 0.5, fontWeight: 500 }}>Kathir Memorial · Chennai</div>
       </nav>
 
-      <div style={{ flex: 1, padding: "24px 28px", maxWidth: 1100, width: "100%", margin: "0 auto", overflowY: "auto" }} className="fadeIn" key={tab}>
+      <div style={{ flex: 1, padding: "32px 40px", maxWidth: 1200, width: "100%", margin: "0 auto", overflowY: "auto" }} className="fadeIn" key={tab}>
         <Routes>
           <Route path="overview" element={<PtOverview p={p} proto={proto} doc={doc} hist={hist} msgs={msgs} />} />
           <Route path="tests" element={<PtTests p={p} proto={proto} hist={hist} />} />
@@ -100,6 +101,7 @@ export default function PatientApp({ patient: p, onLogout }) {
           <Route path="profile" element={<PtProfile p={p} doc={doc} proto={proto} />} />
           <Route path="/" element={<Navigate to={`/patient/${id}/overview`} replace />} />
         </Routes>
+      </div>
       </div>
     </div>
   );
