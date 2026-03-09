@@ -181,7 +181,7 @@ export default function DoctorApp({ doctor, onLogout }) {
   const handleSend = async (pid, msg) => {
     setSendingMsg(pid);
     try {
-      const res = await fetch("http://localhost:5002/doctor/send-outreach", {
+      const res = await fetch(`http://${window.location.hostname}:5002/doctor/send-outreach`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ patient_id: pid, message: msg })

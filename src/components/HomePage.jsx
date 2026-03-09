@@ -75,7 +75,7 @@ export default function HomePage({ onDoctor, onPatient }) {
     const id = role === "doctor" ? selectedUser.physician_id : selectedUser.patient_id;
 
     try {
-      const res = await fetch("http://localhost:5002/login", {
+      const res = await fetch(`http://${window.location.hostname}:5002/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ role, id, password })

@@ -1,21 +1,19 @@
-import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState } from 'react';
 import { io } from 'socket.io-client';
 
 const SocketContext = createContext();
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useSocket = () => {
   return useContext(SocketContext);
 };
 
 export const SocketProvider = ({ children }) => {
-  const [socket, setSocket] = useState(null);
+  const [socket] = useState(() => io(`http://${window.location.hostname}:5002`));
 
   useEffect(() => {
-    const newSocket = io('http://localhost:5002');
-    setSocket(newSocket);
-
-    return () => newSocket.close();
-  }, []);
+    return () => socket.close();
+  }, [socket]);
 
   return (
     <SocketContext.Provider value={socket}>

@@ -32,7 +32,7 @@ export const DataProvider = ({ children }) => {
   const [data, setData] = useState(null);
 
   useEffect(() => {
-    fetch("http://localhost:5002/api/data")
+    fetch(`http://${window.location.hostname}:5002/api/data`)
       .then(res => res.json())
       .then(d => setData(d))
       .catch(console.error);

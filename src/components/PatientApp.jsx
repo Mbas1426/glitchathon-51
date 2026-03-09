@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation, Routes, Route, Navigate, useParams } from "react-router-dom";
 import { useData } from "../CareAgent_Combined";
 import { pt } from '../styles/patientStyles'
@@ -151,7 +151,7 @@ export default function PatientApp({ patient: p, onLogout }) {
   useEffect(() => {
     const fetchMsgs = async () => {
       try {
-        const res = await fetch(`http://localhost:5002/outreach/${p.patient_id}`);
+        const res = await fetch(`http://${window.location.hostname}:5002/outreach/${p.patient_id}`);
         if (res.ok) {
           const data = await res.json();
           setMsgs(data);
