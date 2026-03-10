@@ -36,8 +36,14 @@ export default function DocEscalations({ patients, physicians, onEscalate }) {
 									</div>
 								</div>
 								<div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 10 }}>
-									{[`${p.overdue_days} days overdue`, `Contact via ${p.preferred_channel}`, ...(!p.has_smartphone ? ["NOK needed"] : [])].map((chip, ci) => (
-										<span key={ci} style={{ fontSize: 10, padding: "3px 10px", borderRadius: 8, background: C.bgDeep, color: C.textSub }}>{chip}</span>
+									{[
+										`${p.overdue_days} days overdue`,
+										`Contact via ${p.preferred_channel}`,
+										...(!p.has_smartphone ? ["NOK needed"] : []),
+										...(p.missed_appointments > 0 ? [`${p.missed_appointments} Missed Apps`] : []),
+										...(p.nok_notified ? ["NOK Notified"] : (p.missed_appointments >= 2 ? ["NOK Pending"] : []))
+									].map((chip, ci) => (
+										<span key={ci} style={{ fontSize: 10, padding: "3px 10px", borderRadius: 8, background: ci >= 3 ? (p.nok_notified ? C.redDim : C.orangeDim) : C.bgDeep, color: ci >= 3 ? (p.nok_notified ? C.red : C.orange) : C.textSub, fontWeight: ci >= 3 ? 600 : 400 }}>{chip}</span>
 									))}
 								</div>
 								<div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 12, paddingTop: 12, borderTop: `1px solid ${C.border}` }}>

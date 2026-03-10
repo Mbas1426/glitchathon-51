@@ -44,4 +44,13 @@ export const CSS = `
     font-family: inherit;
   }
   input::placeholder { color: #86868b; }
+  
+  .th-sortable {
+    transition: all 0.2s ease;
+  }
+  .th-sortable:hover {
+    background: rgba(0, 0, 0, 0.035) !important;
+    box-shadow: inset 0 -2px 0 #297FC6, 0 0 15px rgba(41, 127, 198, 0.1);
+    color: #1d1d1f !important;
+  }
 `;

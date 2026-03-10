@@ -198,6 +198,16 @@ export default function PatientApp({ patient: p, onLogout }) {
           </div>
         )}
 
+        {msgs.some(m => m.msg.includes("Next of Kin") && m.type === "urgent") && (
+          <div style={{ background: "rgba(255, 149, 0, 0.1)", borderBottom: `1px solid ${C.orange}40`, color: C.orange, padding: "10px 28px", display: "flex", alignItems: "center", gap: 14 }} className="fadeSlide">
+            <span style={{ fontSize: 16 }}>🔔</span>
+            <span style={{ fontSize: 11, lineHeight: 1.5, flex: 1 }}>
+              Your physician has sent an alert to your Next of Kin due to multiple missed appointments. Please review your messages and contact the clinic.
+            </span>
+            <button onClick={() => navigate(`/patient/${id}/messages`)} style={{ background: C.orange, border: "none", color: "#fff", padding: "4px 12px", borderRadius: 6, fontSize: 10, fontWeight: 700, cursor: "pointer" }}>View Message</button>
+          </div>
+        )}
+
         <nav style={{ background: "rgba(255,255,255,0.5)", borderBottom: `1px solid ${C.border}`, padding: "12px 32px", display: "flex", alignItems: "center", gap: 8, backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)" }}>
           {TABS.map(t => (
             <button key={t.id} onClick={() => navigate(`/patient/${id}/${t.id}`)} style={{ padding: "8px 16px", borderRadius: 20, border: "none", background: tab === t.id ? "#fff" : "transparent", fontSize: 13, cursor: "pointer", color: tab === t.id ? C.textTitle : C.textMuted, transition: "all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275)", fontWeight: tab === t.id ? 600 : 500, boxShadow: tab === t.id ? "0 2px 8px rgba(0,0,0,0.06), 0 0 0 1px rgba(0,0,0,0.04)" : "none", transform: tab === t.id ? "translateY(-1px)" : "translateY(0)" }}>

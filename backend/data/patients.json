@@ -17,7 +17,14 @@
 		"email": "rajesh.k@email.com",
 		"address": "14, Anna Nagar, Chennai",
 		"registered_date": "2021-03-12",
-		"doctor_remarks": "HbA1c critically elevated. Increase Metformin dosage and restrict carbohydrate intake. Urgent follow-up required within 2 weeks."
+		"doctor_remarks": "HbA1c critically elevated. Increase Metformin dosage and restrict carbohydrate intake. Urgent follow-up required within 2 weeks.",
+		"missed_appointments": 2,
+		"next_of_kin": {
+			"name": "Arun Kumar",
+			"relationship": "Son",
+			"phone": "+91 98401 55667"
+		},
+		"nok_notified": false
 	},
 	{
 		"patient_id": 2,
@@ -37,7 +44,14 @@
 		"email": "meena.s@email.com",
 		"address": "7, T Nagar, Chennai",
 		"registered_date": "2020-08-05",
-		"doctor_remarks": "Creatinine levels indicate Stage 3 CKD. Avoid NSAIDs. Restrict protein intake. Nephrology consult scheduled."
+		"doctor_remarks": "Creatinine levels indicate Stage 3 CKD. Avoid NSAIDs. Restrict protein intake. Nephrology consult scheduled.",
+		"missed_appointments": 1,
+		"next_of_kin": {
+			"name": "Sita Sundaram",
+			"relationship": "Daughter",
+			"phone": "+91 94401 11223"
+		},
+		"nok_notified": false
 	},
 	{
 		"patient_id": 3,
@@ -57,7 +71,14 @@
 		"email": "suresh.b@email.com",
 		"address": "22, Adyar, Chennai",
 		"registered_date": "2022-01-18",
-		"doctor_remarks": "BP remains uncontrolled. Amlodipine dose reviewed. Salt restriction and daily walking strictly advised."
+		"doctor_remarks": "BP remains uncontrolled. Amlodipine dose reviewed. Salt restriction and daily walking strictly advised.",
+		"missed_appointments": 0,
+		"next_of_kin": {
+			"name": "Sunita Babu",
+			"relationship": "Wife",
+			"phone": "+91 99401 99887"
+		},
+		"nok_notified": false
 	},
 	{
 		"patient_id": 4,
@@ -157,7 +178,14 @@
 		"email": "saranya.i@email.com",
 		"address": "18, Guindy, Chennai",
 		"registered_date": "2021-07-03",
-		"doctor_remarks": "URGENT: HbA1c at 11.2% is dangerously high. Risk of diabetic ketoacidosis. Insulin therapy initiated. Report any dizziness or vomiting immediately."
+		"doctor_remarks": "URGENT: HbA1c at 11.2% is dangerously high. Risk of diabetic ketoacidosis. Insulin therapy initiated. Report any dizziness or vomiting immediately.",
+		"missed_appointments": 2,
+		"next_of_kin": {
+			"name": "Ramesh Iyer",
+			"relationship": "Husband",
+			"phone": "+91 96001 33445"
+		},
+		"nok_notified": false
 	},
 	{
 		"patient_id": 9,

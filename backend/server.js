@@ -116,14 +116,14 @@ app.post("/api/call/initiate", (req, res) => {
   const calls = getCalls();
   calls[patient_id] = { roomId, callerName, doctor_id, timestamp: Date.now() };
   saveCalls(calls);
-  
+
   res.json({ success: true });
 });
 
 app.get("/api/call/check/:patient_id", (req, res) => {
   const { patient_id } = req.params;
   const calls = getCalls();
-  
+
   if (calls[patient_id]) {
     res.json(calls[patient_id]);
   } else {
@@ -140,8 +140,37 @@ app.post("/api/call/end", (req, res) => {
     delete calls[patient_id];
     saveCalls(calls);
   }
-  
+
   res.json({ success: true });
+});
+
+app.post("/doctor/notify-nok", (req, res) => {
+  const { patient_id } = req.body;
+  if (!patient_id) return res.status(400).json({ error: "Patient ID is required" });
+
+  const patients = JSON.parse(fs.readFileSync(path.join(__dirname, "data", "patients.json"), "utf-8"));
+  const pIdx = patients.findIndex(p => p.patient_id === parseInt(patient_id));
+
+  if (pIdx === -1) return res.status(404).json({ error: "Patient not found" });
+
+  // Update NOK flag
+  patients[pIdx].nok_notified = true;
+  fs.writeFileSync(path.join(__dirname, "data", "patients.json"), JSON.stringify(patients, null, 2));
+
+  // Send message to patient
+  const msgs = JSON.parse(fs.readFileSync(path.join(__dirname, "data", "outreach_msgs.json"), "utf-8"));
+  const pIdStr = patient_id.toString();
+  const newMsg = {
+    date: new Date().toISOString().slice(0, 10),
+    msg: `ALERT: Your doctor has notified your Next of Kin (${patients[pIdx].next_of_kin?.name || 'Contact'}) about your missed appointments. Please contact us immediately.`,
+    type: "urgent"
+  };
+
+  if (!msgs[pIdStr]) msgs[pIdStr] = [];
+  msgs[pIdStr].unshift(newMsg);
+  fs.writeFileSync(path.join(__dirname, "data", "outreach_msgs.json"), JSON.stringify(msgs, null, 2));
+
+  res.json({ success: true, message: "NOK notified and patient alerted." });
 });
 
 // Chat endpoint

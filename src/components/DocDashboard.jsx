@@ -4,7 +4,7 @@ import { useData } from '../CareAgent_Combined.jsx'
 import Counter from './Counter.jsx'
 import Sparkline from './Sparkline.jsx'
 
-export default function DocDashboard({ patients, critical, overdue, closed, escalated, protocols, onNavigate }) {
+export default function DocDashboard({ doctor, patients, critical, overdue, closed, escalated, protocols, onNavigate }) {
 	const { diagIcon } = useData();
 	const diagBreakdown = ["Diabetes", "CKD", "Hypertension", "Hypothyroidism"].map(dd => ({
 		name: dd,
@@ -74,16 +74,22 @@ export default function DocDashboard({ patients, critical, overdue, closed, esca
 				<div style={d.cardHeader}><span style={d.cardTitle}>Recent Activity Feed</span><span style={{ fontSize: 10, color: C.textDim }}>Live</span></div>
 				<div style={{ marginTop: 12, display: "flex", flexDirection: "column", gap: 8 }}>
 					{[
+						...patients.filter(p => p.nok_notified).map(p => ({
+							time: "08:15",
+							msg: `Physician Alert: Dr. ${doctor?.physician_name || 'Assigned Physician'} initiated notification to Next of Kin for ${p.patient_name} (${p.next_of_kin?.name}) due to 2 missed appointments.`,
+							color: C.red,
+							isDynamic: true
+						})),
 						{ time: "09:42", msg: "Outreach sent to Rajesh Kumar (Diabetes — HbA1c overdue 120 days)", color: C.orange },
 						{ time: "09:38", msg: "Saranya Iyer escalated to Dr. Priya Sharma — HbA1c: 11.2%, no response after 2 attempts", color: C.red },
 						{ time: "09:30", msg: "Deepa Venkat confirmed home sample collection for Saturday", color: C.green },
 						{ time: "09:15", msg: "Senthil Kumar responded: 'Is it really urgent?' — Contextual reply sent", color: C.blue },
 						{ time: "08:50", msg: "Daily scan complete — 11 patients overdue identified", color: C.textSub },
-					].map((a, i) => (
-						<div key={i} style={{ display: "flex", alignItems: "center", gap: 10, padding: "6px 0", borderBottom: `1px solid ${C.border}` }}>
+					].sort((a, b) => b.time.localeCompare(a.time)).map((a, i) => (
+						<div key={i} style={{ display: "flex", alignItems: "center", gap: 10, padding: "6px 0", borderBottom: `1px solid ${C.border}`, background: a.isDynamic ? "rgba(255, 107, 107, 0.05)" : "transparent" }}>
 							<span style={{ fontSize: 11, color: C.textMuted, minWidth: 38, fontFamily: "monospace" }}>{a.time}</span>
 							<span style={{ width: 6, height: 6, borderRadius: "50%", background: a.color, flexShrink: 0 }} />
-							<span style={{ fontSize: 12, color: C.textSub }}>{a.msg}</span>
+							<span style={{ fontSize: 12, color: C.textSub, fontWeight: a.isDynamic ? 600 : 400 }}>{a.msg}</span>
 						</div>
 					))}
 				</div>

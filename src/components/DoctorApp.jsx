@@ -90,7 +90,7 @@ export default function DoctorApp({ doctor, onLogout }) {
 
   useEffect(() => {
     if (!socket) return;
-    
+
     // We no longer rely on socket.io for call events in the JSON polling architecture
     // Doctor will just stay in the room until they click End Call.
   }, [socket, doctor.physician_id]);
@@ -100,7 +100,7 @@ export default function DoctorApp({ doctor, onLogout }) {
       const targetUserId = `patient_${patient.patient_id}`;
       // Generate a unique, unpredictable room ID securely for Jitsi
       const roomId = `CareAgent-${doctor.physician_id}-${patient.patient_id}-${Math.random().toString(36).substring(2, 10)}`;
-      
+
       setCallState(prev => ({ ...prev, isCalling: true, caller: patient.patient_name, targetUserId, roomId }));
 
       // Signal the other user by saving the room in the backend JSON database
@@ -113,7 +113,7 @@ export default function DoctorApp({ doctor, onLogout }) {
           patient_id: patient.patient_id,
           roomId: roomId,
           doctor_id: doctor.physician_id,
-          callerName: `Dr. ${doctor.physician_name}`
+          callerName: `${doctor.physician_name}`
         })
       });
 
@@ -126,7 +126,7 @@ export default function DoctorApp({ doctor, onLogout }) {
 
   const endCall = async () => {
     const patientId = callState.targetUserId.replace('patient_', '');
-    
+
     setCallState({ isCalling: false, receivingCall: false, caller: "", targetUserId: "", roomId: null, callAccepted: false, callEnded: true });
 
     // Remove the active call from the JSON database
@@ -222,7 +222,7 @@ export default function DoctorApp({ doctor, onLogout }) {
               <input placeholder="Search patients…" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} style={d.searchInput} />
             </div>
             <div style={{ textAlign: "right", marginLeft: 16 }}>
-              <div style={{ fontSize: 15, fontWeight: 600, color: C.textTitle }}>Dr. {doctor?.physician_name}</div>
+              <div style={{ fontSize: 15, fontWeight: 600, color: C.textTitle }}>{doctor?.physician_name}</div>
               <div style={{ fontSize: 12, color: C.textMuted, letterSpacing: 0.5, fontWeight: 400 }}>{doctor?.specialty}</div>
             </div>
             <button onClick={onLogout} style={{ fontSize: 13, padding: "8px 16px", border: `1px solid ${C.border}`, background: "rgba(255,255,255,0.5)", cursor: "pointer", color: C.textTitle, borderRadius: 10, fontWeight: 500, transition: "all 0.2s", marginLeft: 12 }}>Sign Out</button>
@@ -247,7 +247,7 @@ export default function DoctorApp({ doctor, onLogout }) {
         <div style={{ flex: 1, padding: "32px 40px", maxWidth: 1400, width: "100%", margin: "0 auto", overflowY: "auto" }} className="fadeIn" key={activeTab}>
           <div style={{ opacity: animIn ? 1 : 0, transform: animIn ? "translateY(0)" : "translateY(8px)", transition: "all 0.2s ease" }}>
             <Routes>
-              <Route path="dashboard" element={<DocDashboard patients={myPatients} critical={critical} overdue={overdue} closed={closed} escalated={escalated} protocols={CARE_PROTOCOLS} onNavigate={handleTabChange} />} />
+              <Route path="dashboard" element={<DocDashboard doctor={doctor} patients={myPatients} critical={critical} overdue={overdue} closed={closed} escalated={escalated} protocols={CARE_PROTOCOLS} onNavigate={handleTabChange} />} />
               <Route path="patients" element={<DocPatients patients={filtered} filterRisk={filterRisk} setFilterRisk={setFilterRisk} filterDiag={filterDiag} setFilterDiag={setFilterDiag} onSelect={setSelectedPatient} selected={selectedPatient} />} />
               <Route path="outreach" element={<DocOutreach patients={myPatients} responses={OUTREACH_RESPONSES} onSend={handleSend} sentMsgs={sentMsgs} sendingMsg={sendingMsg} />} />
               <Route path="gaps" element={<DocCareGaps patients={myPatients} gapsLog={gapsLog} setGapsLog={setGapsLog} showToast={showToast} />} />

@@ -56,11 +56,35 @@ export default function DocPatientModal({ patient: p, onClose, onCall }) {
 						{ label: "Channel", value: `${getChannelIcon(p.preferred_channel)} ${p.preferred_channel}`, sub: p.has_smartphone ? "Smartphone" : "NOK required" },
 						{ label: "Last Test", value: p.last_test, sub: p.last_date },
 						{ label: "Last Value", value: `${p.last_value}`, sub: bad ? "⚠ Abnormal" : "Within range", valueColor: bad ? C.red : C.green },
+						{ label: "Missed Apps", value: `${p.missed_appointments || 0}`, sub: p.missed_appointments >= 2 ? (p.nok_notified ? "Alert Sent to Kin" : "Kin Alert Recommended") : "Follow-up needed", valueColor: p.missed_appointments >= 2 ? C.red : (p.missed_appointments > 0 ? C.orange : C.textMuted) },
+						{ label: "Next of Kin", value: p.next_of_kin?.name || "N/A", sub: p.next_of_kin ? `${p.next_of_kin.relationship} · ${p.next_of_kin.phone}` : "No contact listed" },
 					].map((f, i) => (
-						<div key={i} style={{ background: C.bgDeep, borderRadius: 10, padding: "10px 14px", border: `1px solid ${C.border}` }}>
+						<div key={i} style={{ background: C.bgDeep, borderRadius: 10, padding: "10px 14px", border: `1px solid ${C.border}`, gridColumn: (f.label === "Next of Kin") ? "1/3" : "auto", display: 'flex', flexDirection: 'column', position: 'relative' }}>
 							<div style={{ fontSize: 10, color: C.textMuted, letterSpacing: 1, textTransform: "uppercase", marginBottom: 4 }}>{f.label}</div>
-							<div style={{ fontSize: 13, color: f.valueColor || C.text, fontWeight: 600 }}>{f.value}</div>
-							<div style={{ fontSize: 10, color: C.textMuted }}>{f.sub}</div>
+							<div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+								<div>
+									<div style={{ fontSize: 13, color: f.valueColor || C.text, fontWeight: 600 }}>{f.value}</div>
+									<div style={{ fontSize: 10, color: C.textMuted }}>{f.sub}</div>
+								</div>
+								{f.label === "Missed Apps" && p.missed_appointments >= 2 && !p.nok_notified && (
+									<button
+										onClick={async (e) => {
+											e.stopPropagation();
+											const res = await fetch(`http://${window.location.hostname}:5002/doctor/notify-nok`, {
+												method: 'POST',
+												headers: { 'Content-Type': 'application/json' },
+												body: JSON.stringify({ patient_id: p.patient_id })
+											});
+											if (res.ok) {
+												window.location.reload();
+											}
+										}}
+										style={{ background: C.red, border: 'none', color: '#fff', fontSize: 10, padding: '4px 8px', borderRadius: 4, cursor: 'pointer', fontWeight: 700 }}
+									>
+										NOTIFY NOK
+									</button>
+								)}
+							</div>
 						</div>
 					))}
 				</div>
