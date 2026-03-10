@@ -1,16 +1,17 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation, Routes, Route, Navigate, useParams } from "react-router-dom";
-import { useData } from "../CareAgent_Combined"; import { pt } from '../styles/patientStyles'
+import { useData } from "../CareAgent_Combined";
+import { pt } from '../styles/patientStyles'
 import { C } from '../styles/homeStyles.jsx'
 import { d } from '../styles/doctorStyles.jsx';
-import PtOverview from "../pages/patient/PtOverview.jsx";
-import PtTests from "../pages/patient/PtTests.jsx";
-import PtAppointments from "../pages/patient/PtAppointments.jsx";
-import PtMessages from "../pages/patient/PtMessages.jsx";
-import PtProfile from "../pages/patient/PtProfile.jsx";
+import PtOverview from "./PtOverview.jsx";
+import PtTests from "./PtTests.jsx";
+import PtAppointments from "./PtAppointments.jsx";
+import PtMessages from "./PtMessages.jsx";
+import PtProfile from "./PtProfile.jsx";
 import VideoCallModal from "./VideoCallModal.jsx";
 import { useSocket } from '../SocketContext.jsx';
-import Peer from 'simple-peer'
+import Peer from 'simple-peer';
 import { CSS } from '../styles/css.jsx';
 
 export default function PatientApp({ patient: p, onLogout }) {
@@ -78,6 +79,9 @@ export default function PatientApp({ patient: p, onLogout }) {
   useEffect(() => {
     if (!socket) return;
 
+    // Register the socket connection the patient portal accesses it directly or reloads
+    socket.emit("register", `patient_${p.patient_id}`);
+
     socket.on("callUser", (data) => {
       setCallState(prev => ({
         ...prev,
@@ -96,7 +100,7 @@ export default function PatientApp({ patient: p, onLogout }) {
       socket.off("callUser");
       socket.off("callEnded");
     };
-  }, [socket]);
+  }, [socket, p.patient_id]);
 
   const answerCall = async () => {
     try {
@@ -107,7 +111,13 @@ export default function PatientApp({ patient: p, onLogout }) {
       const peer = new Peer({
         initiator: false,
         trickle: false,
-        stream: stream
+        stream: stream,
+        config: {
+          iceServers: [
+            { urls: 'stun:stun.l.google.com:19302' },
+            { urls: 'stun:global.stun.twilio.com:3478' }
+          ]
+        }
       });
 
       peer.on("signal", (data) => {
@@ -199,24 +209,18 @@ export default function PatientApp({ patient: p, onLogout }) {
               <div style={{ fontSize: 15, fontWeight: 600, color: C.textTitle }}>{p.patient_name}</div>
               <div style={{ fontSize: 12, color: C.textMuted, letterSpacing: 0.5, fontWeight: 400 }}>#{String(p.patient_id).padStart(4, "0")} · {p.diagnosis}</div>
             </div>
-            <span
-              style={{
-                fontSize: 11, padding: "4px 10px", borderRadius: 8, letterSpacing: 0.5, fontWeight: 500,
-                border: `1px solid ${isUrgent ? C.red : isOverdue ? "#FF9500" : C.border}`,
-                color: isUrgent ? C.red : isOverdue ? "#FF9500" : C.textMuted,
-              }}
-            >
-              {STATUS_MAP[p.status]}
-            </span>
-            <button
-              onClick={onLogout}
-              style={{ fontSize: 13, padding: "8px 16px", border: `1px solid ${C.border}`, background: "rgba(255,255,255,0.5)", cursor: "pointer", color: C.textTitle, borderRadius: 10, fontWeight: 500, transition: "all 0.2s" }}
-            >
-              Sign Out
-            </button>
+            <span style={{ fontSize: 11, padding: "4px 10px", border: `1px solid ${isUrgent ? C.red : isOverdue ? "#FF9500" : C.border}`, color: isUrgent ? C.red : isOverdue ? "#FF9500" : C.textMuted, borderRadius: 8, letterSpacing: 0.5, fontWeight: 500 }}>{STATUS_MAP[p.status]}</span>
+            <button onClick={onLogout} style={{ fontSize: 13, padding: "8px 16px", border: `1px solid ${C.border}`, background: "rgba(255,255,255,0.5)", cursor: "pointer", color: C.textTitle, borderRadius: 10, fontWeight: 500, transition: "all 0.2s" }}>Sign Out</button>
           </div>
         </header>
 
+        {isUrgent && (
+          <div style={{ background: C.redDim, borderBottom: `1px solid ${C.red}40`, color: C.red, padding: "10px 28px", display: "flex", alignItems: "center", gap: 14 }} className="fadeSlide">
+            <span style={{ fontSize: 16, fontWeight: 700 }}>!</span>
+            <span style={{ fontSize: 11, lineHeight: 1.5, flex: 1 }}>Action required — Your {p.last_test} result of <strong>{p.last_value} {proto?.unit}</strong> is critically above the safe range. Contact {doc?.physician_name} immediately.</span>
+            <span style={{ fontSize: 11, fontWeight: 700 }}>{doc?.phone}</span>
+          </div>
+        )}
 
         <nav style={{ background: "rgba(255,255,255,0.5)", borderBottom: `1px solid ${C.border}`, padding: "12px 32px", display: "flex", alignItems: "center", gap: 8, backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)" }}>
           {TABS.map(t => (
@@ -273,7 +277,8 @@ export default function PatientApp({ patient: p, onLogout }) {
             onEndCall={endCall}
           />
         )}
+
       </div>
-    </div >
+    </div>
   );
 }

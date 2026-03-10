@@ -13,7 +13,7 @@ const getJson = (filename) => {
 
 // Helper to read/write outreach msgs
 const msgsPath = path.join(__dirname, "data", "outreach_msgs.json");
-const getMsgs = () => JgetJson("outreach_msgs.json");
+const getMsgs = () => getJson("outreach_msgs.json");
 const saveMsgs = (data) => fs.writeFileSync(msgsPath, JSON.stringify(data, null, 2));
 
 const usersPath = path.join(__dirname, "data", "users.json");
@@ -91,7 +91,7 @@ app.post("/doctor/send-outreach", (req, res) => {
 
   const msgs = getMsgs();
   const newMsg = {
-    date: new Date().toISOString(),
+    date: new Date().toISOString().slice(0, 10),
     msg: message,
     type: type
   };
@@ -112,13 +112,15 @@ app.post("/chat", async (req, res) => {
   }
 
   try {
-    const patient = PATIENTS.find(p => p.patient_id === patient_id);
+    const patientsList = getJson("patients.json");
+    const testHistData = getJson("test_history.json");
+    const patient = patientsList.find(p => p.patient_id === patient_id);
 
     if (!patient) {
       return res.status(404).json({ error: "Patient not found" });
     }
 
-    const testHistory = TEST_HISTORY[patient_id] || [];
+    const testHistory = testHistData[patient_id] || [];
     const outreach = getMsgs()[patient_id] || [];
 
     const apiKey = process.env.GEMINI_API_KEY;
@@ -278,6 +280,6 @@ io.on("connection", (socket) => {
   });
 });
 
-server.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+server.listen(PORT, '0.0.0.0', () => {
+  console.log(`Server running on http://0.0.0.0:${PORT}`);
 });

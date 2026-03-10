@@ -5,20 +5,18 @@ import { d } from '../styles/doctorStyles.jsx'
 import { pt } from '../styles/patientStyles.jsx'
 import { CSS } from '../styles/css.jsx'
 import { useData } from "../CareAgent_Combined.jsx";
-import { PHYSICIANS, PATIENTS, CARE_PROTOCOLS, OUTREACH_RESPONSES, getRiskTier } from "../pages/CareAgent_Combined.jsx";
 import PulseRing from './PulseRing.jsx'
-import DocDashboard from '../pages/doctor/DocDashboard.jsx'
-import DocPatients from '../pages/doctor/DocPatients.jsx'
-import DocOutreach from '../pages/doctor/DocOutreach.jsx'
-import DocCareGaps from '../pages/doctor/DocCareGaps.jsx'
-import DocEscalations from '../pages/doctor/DocEscalations.jsx'
+import DocDashboard from './DocDashboard.jsx'
+import DocPatients from './DocPatients.jsx'
+import DocOutreach from './DocOutreach.jsx'
+import DocCareGaps from './DocCareGaps.jsx'
+import DocEscalations from './DocEscalations.jsx'
 import DocPatientModal from './DocPatientModal.jsx'
 import VideoCallModal from './VideoCallModal.jsx'
 import { useSocket } from '../SocketContext.jsx';
 import Peer from 'simple-peer';
 
 export default function DoctorApp({ doctor, onLogout }) {
-
   const SvgBackground = () => (
     <svg
       style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', zIndex: 0, pointerEvents: 'none' }}
@@ -59,7 +57,6 @@ export default function DoctorApp({ doctor, onLogout }) {
   );
 
   const { PHYSICIANS, PATIENTS, CARE_PROTOCOLS, OUTREACH_RESPONSES, getRiskTier } = useData();
-
   const navigate = useNavigate();
   const location = useLocation();
   const { id } = useParams();
@@ -73,6 +70,7 @@ export default function DoctorApp({ doctor, onLogout }) {
   const [callState, setCallState] = useState({
     isCalling: false,
     receivingCall: false,
+    targetUserId: "",
     caller: "",
     callerSignal: null,
     callAccepted: false,
@@ -98,6 +96,9 @@ export default function DoctorApp({ doctor, onLogout }) {
   useEffect(() => {
     if (!socket) return;
 
+    // Register the doctor to socket if accessed directly via URL or page refresh
+    socket.emit("register", `doctor_${doctor.physician_id}`);
+
     socket.on("callAccepted", (signal) => {
       setCallState(prev => ({ ...prev, callAccepted: true }));
       if (connectionRef.current) {
@@ -119,23 +120,30 @@ export default function DoctorApp({ doctor, onLogout }) {
       socket.off("callDeclined");
       socket.off("callEnded");
     };
-  }, [socket]);
+  }, [socket, doctor.physician_id]);
 
   const initiateCall = async (patient) => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
       setLocalStream(stream);
-      setCallState(prev => ({ ...prev, isCalling: true, caller: patient.patient_name }));
+      const targetUserId = `patient_${patient.patient_id}`;
+      setCallState(prev => ({ ...prev, isCalling: true, caller: patient.patient_name, targetUserId }));
 
       const peer = new Peer({
         initiator: true,
         trickle: false,
-        stream: stream
+        stream: stream,
+        config: {
+          iceServers: [
+            { urls: 'stun:stun.l.google.com:19302' },
+            { urls: 'stun:global.stun.twilio.com:3478' }
+          ]
+        }
       });
 
       peer.on("signal", (data) => {
         socket.emit("callUser", {
-          userToCall: `patient_${patient.patient_id}`,
+          userToCall: targetUserId,
           signalData: data,
           from: `doctor_${doctor.physician_id}`,
           callerName: `Dr. ${doctor.physician_name}`
@@ -155,7 +163,10 @@ export default function DoctorApp({ doctor, onLogout }) {
   };
 
   const endCall = () => {
-    setCallState({ isCalling: false, receivingCall: false, caller: "", callerSignal: null, callAccepted: false, callEnded: true });
+    // Preserve targetUserId to send the endCall event correctly, but clear the rest
+    const targetUserId = callState.targetUserId;
+
+    setCallState({ isCalling: false, receivingCall: false, caller: "", targetUserId: "", callerSignal: null, callAccepted: false, callEnded: true });
 
     if (connectionRef.current) {
       connectionRef.current.destroy();
@@ -167,8 +178,9 @@ export default function DoctorApp({ doctor, onLogout }) {
     }
     setRemoteStream(null);
 
-    if (callState.caller) {
-      socket.emit("endCall", { to: `patient_${doctor.physician_id}` }); // Fallback logic would properly track the current connected patient ID
+    // If we have an active call context, tell the patient we hung up
+    if (targetUserId) {
+      socket.emit("endCall", { to: targetUserId });
     }
   };
 
@@ -260,23 +272,10 @@ export default function DoctorApp({ doctor, onLogout }) {
 
         <nav style={{ background: "rgba(255,255,255,0.5)", borderBottom: `1px solid ${C.border}`, padding: "12px 32px", display: "flex", alignItems: "center", gap: 8, backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)" }}>
           {NAV.map(n => (
-            <button
-              key={n.id}
-              onClick={() => handleTabChange(n.id)}
-              style={{
-                padding: "8px 16px", borderRadius: 20, border: "none", fontSize: 13, cursor: "pointer", display: "flex", alignItems: "center", gap: 8,
-                background: activeTab === n.id ? "#fff" : "transparent",
-                color: activeTab === n.id ? C.textTitle : C.textMuted, transition: "all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275)",
-                fontWeight: activeTab === n.id ? 600 : 500,
-                boxShadow: activeTab === n.id ? "0 2px 8px rgba(0,0,0,0.06), 0 0 0 1px rgba(0,0,0,0.04)" : "none",
-                transform: activeTab === n.id ? "translateY(-1px)" : "translateY(0)",
-              }}
-            >
+            <button key={n.id} onClick={() => handleTabChange(n.id)} style={{ padding: "8px 16px", borderRadius: 20, border: "none", background: activeTab === n.id ? "#fff" : "transparent", fontSize: 13, cursor: "pointer", color: activeTab === n.id ? C.textTitle : C.textMuted, transition: "all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275)", fontWeight: activeTab === n.id ? 600 : 500, boxShadow: activeTab === n.id ? "0 2px 8px rgba(0,0,0,0.06), 0 0 0 1px rgba(0,0,0,0.04)" : "none", transform: activeTab === n.id ? "translateY(-1px)" : "translateY(0)", display: "flex", alignItems: "center", gap: 8 }}>
               {n.label}
               {n.id === "escalations" && escalated.length > 0 && <span style={d.badge}>{escalated.length}</span>}
-              {n.id === "patients" && overdue.length > 0 &&
-                <span style={{ ...d.badge, background: "rgba(255, 107, 107, 0.1)", color: C.red }}>{overdue.length}</span>
-              }
+              {n.id === "patients" && overdue.length > 0 && <span style={{ ...d.badge, background: "rgba(255, 107, 107, 0.1)", color: C.red }}>{overdue.length}</span>}
             </button>
           ))}
           <div style={{ flex: 1 }} />
@@ -367,11 +366,7 @@ export default function DoctorApp({ doctor, onLogout }) {
         </div>
       )}
       {selectedPatient && (
-        <DocPatientModal
-          patient={selectedPatient}
-          onClose={() => setSelectedPatient(null)}
-          onCall={() => initiateCall(selectedPatient)}
-        />
+        <DocPatientModal patient={selectedPatient} onClose={() => setSelectedPatient(null)} onCall={() => initiateCall(selectedPatient)} />
       )}
       {callState.isCalling && (
         <VideoCallModal
@@ -380,8 +375,7 @@ export default function DoctorApp({ doctor, onLogout }) {
           callerName={callState.caller}
           onEndCall={endCall}
         />
-      )
-      }
-    </div >
+      )}
+    </div>
   );
 }
