@@ -111,7 +111,13 @@ export default function PatientApp({ patient: p, onLogout }) {
       const peer = new Peer({
         initiator: false,
         trickle: false,
-        stream: stream
+        stream: stream,
+        config: {
+          iceServers: [
+            { urls: 'stun:stun.l.google.com:19302' },
+            { urls: 'stun:global.stun.twilio.com:3478' }
+          ]
+        }
       });
 
       peer.on("signal", (data) => {
