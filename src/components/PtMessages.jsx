@@ -9,23 +9,19 @@ export default function PtMessages({ p, msgs }) {
   const [loading, setLoading] = useState(false);
   const endRef = useRef(null);
 
-  // Initialize with outreach messages + welcome message on mount
   useEffect(() => {
     const formattedMsgs = msgs.map(m => ({
       date: m.date,
-      msg: m.message || m.msg, // handle different json structures
+      msg: m.message || m.msg,
       type: "doctor"
     }));
 
     setMessages(formattedMsgs);
 
-    // Only call start conversation if it's actually empty
     if (formattedMsgs.length === 0) {
       startConversation();
     }
-  }, [p.patient_id]); // only re-run if patient changes
-
-  // Scroll to bottom on new message
+  }, [p.patient_id]); 
 
   const startConversation = async () => {
     try {
@@ -59,7 +55,6 @@ export default function PtMessages({ p, msgs }) {
 
     const userText = input;
 
-    // Add user message
     const userMsg = { date: new Date().toISOString(), msg: userText, type: "user" };
     setMessages((prev) => [...prev, userMsg]);
     setInput("");
