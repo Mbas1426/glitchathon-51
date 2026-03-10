@@ -23,9 +23,10 @@ export default function DocPatients({ patients, filterRisk, setFilterRisk, filte
         let aValue, bValue;
 
         if (sortConfig.key === 'risk') {
-          const riskPriority = { critical: 4, high: 3, moderate: 2, low: 1 };
-          aValue = riskPriority[getRiskTier(a)] || 0;
-          bValue = riskPriority[getRiskTier(b)] || 0;
+          const riskPriority = { sos: 5, critical: 4, high: 3, moderate: 2, low: 1 };
+          const getPrio = (p) => p.sos_active ? 'sos' : getRiskTier(p);
+          aValue = riskPriority[getPrio(a)] || 0;
+          bValue = riskPriority[getPrio(b)] || 0;
         } else {
           aValue = a[sortConfig.key];
           bValue = b[sortConfig.key];
@@ -130,8 +131,20 @@ export default function DocPatients({ patients, filterRisk, setFilterRisk, filte
                   <td style={d.td}><div style={{ fontSize: 11 }}>{p.last_test}</div><div style={{ fontSize: 10, color: C.textMuted }}>{p.last_date}</div></td>
                   <td style={d.td}><span style={{ fontSize: 12, color: bad ? C.red : C.green, fontWeight: 700 }}>{p.last_value}</span>{bad && <span style={{ fontSize: 9, color: C.red, marginLeft: 4 }}>↑</span>}</td>
                   <td style={d.td}><span style={{ fontSize: 12, color: p.overdue_days > 90 ? C.red : C.orange, fontWeight: 600 }}>{p.overdue_days}d</span></td>
-                  <td style={d.td}><div style={{ display: "flex", alignItems: "center", gap: 6 }}><PulseRing color={rc} size={6} /><span style={{ fontSize: 11, color: rc, textTransform: "capitalize" }}>{risk}</span></div></td>
-                  <td style={d.td}><span style={{ fontSize: 10, padding: "3px 8px", borderRadius: 10, background: sb.bg, color: sb.color, fontWeight: 600 }}>{sb.label}</span></td>
+                  <td style={d.td}>
+                    {p.sos_active ? (
+                      <div style={{ display: "flex", alignItems: "center", gap: 6, animation: "sos-blink 1s infinite" }}>
+                        <PulseRing color={C.red} size={8} />
+                        <span style={{ fontSize: 11, color: C.red, fontWeight: 800 }}>SOS ACTIVE</span>
+                      </div>
+                    ) : (
+                      <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                        <PulseRing color={rc} size={6} />
+                        <span style={{ fontSize: 11, color: rc, textTransform: "capitalize" }}>{risk}</span>
+                      </div>
+                    )}
+                  </td>
+                  <td style={d.td}><span style={{ fontSize: 10, padding: "3px 8px", borderRadius: 10, background: p.sos_active ? C.redDim : sb.bg, color: p.sos_active ? C.red : sb.color, fontWeight: 600 }}>{p.sos_active ? "EMERGENCY" : sb.label}</span></td>
                   <td style={d.td}>
                     <span style={{ fontSize: 12, fontWeight: 500, color: C.textSub }}>{p.preferred_channel}</span>
                     {p.nok_notified && <div style={{ fontSize: 9, color: C.red, fontWeight: 700, marginTop: 2, textTransform: "uppercase" }}>NOK Notified</div>}
@@ -145,6 +158,13 @@ export default function DocPatients({ patients, filterRisk, setFilterRisk, filte
           </tbody>
         </table>
       </div>
+      <style>{`
+        @keyframes sos-blink {
+          0% { opacity: 1; transform: scale(1); }
+          50% { opacity: 0.7; transform: scale(1.05); }
+          100% { opacity: 1; transform: scale(1); }
+        }
+      `}</style>
     </div>
   );
 }

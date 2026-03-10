@@ -12,6 +12,8 @@ import PtProfile from "./PtProfile.jsx";
 import VideoCallModal from "./VideoCallModal.jsx";
 import { useSocket } from '../SocketContext.jsx';
 import { CSS } from '../styles/css.jsx';
+import SOSMapModal from "./SOSMapModal.jsx";
+import PulseRing from "./PulseRing.jsx";
 
 export default function PatientApp({ patient: p, onLogout }) {
   const SvgBackground = () => (
@@ -48,7 +50,7 @@ export default function PatientApp({ patient: p, onLogout }) {
     </svg>
   );
 
-  const { getRiskTier, CARE_PROTOCOLS, PHYSICIANS, OUTREACH_MSGS, APPOINTMENTS, TEST_HISTORY, STATUS_MAP } = useData();
+  const { getRiskTier, CARE_PROTOCOLS, PHYSICIANS, OUTREACH_MSGS, APPOINTMENTS, TEST_HISTORY, STATUS_MAP, socketConnected } = useData();
   const navigate = useNavigate();
   const location = useLocation();
   const { id } = useParams();
@@ -65,6 +67,40 @@ export default function PatientApp({ patient: p, onLogout }) {
     callAccepted: false,
     callEnded: false,
   });
+
+  const sosData = p.sos_active ? {
+    active: true,
+    representative: p.sos_representative || {
+      name: "Dr. Arjun",
+      phone: "+91 98840 12345",
+      eta: "12 mins",
+      distance: "4.2 km"
+    }
+  } : null;
+
+  const triggerSOS = async () => {
+    const isActivating = !p.sos_active;
+
+    // Simple confirmation
+    if (isActivating && !window.confirm("Are you sure you want to send an SOS signal to the hospital?")) {
+      return;
+    }
+
+    try {
+      await fetch(`http://${window.location.hostname}:5002/api/sos/signal`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          patient_id: p.patient_id,
+          active: isActivating
+        })
+      });
+      // The socket emit from backend will trigger re-fetches and in-memory updates
+    } catch (err) {
+      console.error(err);
+      alert("Error sending SOS. Please try again or call emergency services.");
+    }
+  };
 
   useEffect(() => {
     const checkActiveCalls = async () => {
@@ -179,9 +215,41 @@ export default function PatientApp({ patient: p, onLogout }) {
               <div style={{ fontSize: 12, color: C.textMuted, letterSpacing: 0.5, fontWeight: 400 }}>#{String(p.patient_id).padStart(4, "0")} · {p.diagnosis}</div>
             </div>
             <span style={{ fontSize: 11, padding: "4px 10px", border: `1px solid ${isUrgent ? C.red : isOverdue ? "#FF9500" : C.border}`, color: isUrgent ? C.red : isOverdue ? "#FF9500" : C.textMuted, borderRadius: 8, letterSpacing: 0.5, fontWeight: 500 }}>{STATUS_MAP[p.status]}</span>
+
+            <button
+              onClick={triggerSOS}
+              style={{
+                fontSize: 13,
+                padding: "8px 20px",
+                background: sosData?.active ? "#fff" : C.red,
+                color: sosData?.active ? C.red : "#fff",
+                border: sosData?.active ? `2px solid ${C.red}` : "none",
+                cursor: "pointer",
+                borderRadius: 12,
+                fontWeight: 700,
+                boxShadow: sosData?.active ? "none" : "0 4px 12px rgba(255,59,48,0.3)",
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+                transition: "all 0.3s ease",
+                animation: sosData?.active ? "pulse-red 2s infinite" : "none"
+              }}
+            >
+              <span style={{ fontSize: 16 }}>🆘</span>
+              {sosData?.active ? "CANCEL SOS" : "SOS"}
+            </button>
+
             <button onClick={onLogout} style={{ fontSize: 13, padding: "8px 16px", border: `1px solid ${C.border}`, background: "rgba(255,255,255,0.5)", cursor: "pointer", color: C.textTitle, borderRadius: 10, fontWeight: 500, transition: "all 0.2s" }}>Sign Out</button>
           </div>
         </header>
+
+        <style>{`
+          @keyframes pulse-red {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 59, 48, 0.4); }
+            70% { transform: scale(1.05); box-shadow: 0 0 0 10px rgba(255, 59, 48, 0); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 59, 48, 0); }
+          }
+        `}</style>
 
         {isUrgent && (
           <div style={{ background: C.redDim, borderBottom: `1px solid ${C.red}40`, color: C.red, padding: "10px 28px", display: "flex", alignItems: "center", gap: 14 }} className="fadeSlide">
@@ -208,6 +276,12 @@ export default function PatientApp({ patient: p, onLogout }) {
             </button>
           ))}
           <div style={{ flex: 1 }} />
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginRight: 20 }}>
+            <PulseRing color={socketConnected ? "#2ecc71" : C.red} size={6} />
+            <span style={{ fontSize: 11, color: socketConnected ? "#2ecc71" : C.red, fontWeight: 700, letterSpacing: 0.5 }}>
+              {socketConnected ? "HOSPITAL TERMINAL LINKED" : "OFFLINE"}
+            </span>
+          </div>
           <div style={{ fontSize: 12, color: C.textMuted, letterSpacing: 0.5, fontWeight: 500 }}>Kathir Memorial · Chennai</div>
         </nav>
 
@@ -253,6 +327,8 @@ export default function PatientApp({ patient: p, onLogout }) {
             onEndCall={endCall}
           />
         )}
+
+        <SOSMapModal sosData={sosData} onCancel={triggerSOS} />
 
       </div>
     </div>

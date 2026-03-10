@@ -94,7 +94,7 @@ app.post("/doctor/send-outreach", (req, res) => {
   };
 
   if (!msgs[patient_id]) msgs[patient_id] = [];
-  msgs[patient_id].unshift(newMsg); 
+  msgs[patient_id].unshift(newMsg);
 
   saveMsgs(msgs);
   res.json({ success: true, message: newMsg });
@@ -144,7 +144,7 @@ app.post("/doctor/notify-nok", (req, res) => {
 
   if (pIdx === -1) return res.status(404).json({ error: "Patient not found" });
 
- 
+
   patients[pIdx].nok_notified = true;
   fs.writeFileSync(path.join(__dirname, "data", "patients.json"), JSON.stringify(patients, null, 2));
 
@@ -163,6 +163,46 @@ app.post("/doctor/notify-nok", (req, res) => {
   res.json({ success: true, message: "NOK notified and patient alerted." });
 });
 
+// SOS Endpoints
+app.post("/api/sos/signal", (req, res) => {
+  const { patient_id, active, latitude, longitude } = req.body;
+  if (!patient_id) return res.status(400).json({ error: "Patient ID is required" });
+
+  const patientsPath = path.join(__dirname, "data", "patients.json");
+  const patients = JSON.parse(fs.readFileSync(patientsPath, "utf-8"));
+  const pIdx = patients.findIndex(p => p.patient_id === parseInt(patient_id));
+
+  if (pIdx === -1) return res.status(404).json({ error: "Patient not found" });
+
+  patients[pIdx].sos_active = active;
+  if (active) {
+    patients[pIdx].sos_location = { lat: latitude || 12.9716, lng: longitude || 80.2452 }; // Default to Chennai if not provided
+    patients[pIdx].sos_representative = {
+      name: "Dr. Arjun",
+      phone: "+91 98840 12345",
+      eta: "12 mins",
+      distance: "4.2 km"
+    };
+  } else {
+    delete patients[pIdx].sos_location;
+    delete patients[pIdx].sos_representative;
+  }
+
+  fs.writeFileSync(patientsPath, JSON.stringify(patients, null, 2));
+
+  // Broadcast SOS event to all connected users
+  io.emit("sos_update", {
+    patient_id: parseInt(patient_id),
+    active,
+    patient_name: patients[pIdx].patient_name,
+    location: patients[pIdx].sos_location,
+    representative: patients[pIdx].sos_representative
+  });
+
+  res.json({ success: true, sos_active: active });
+});
+
+// Chat endpoint
 app.post("/chat", async (req, res) => {
   const { message, patient_id } = req.body;
 

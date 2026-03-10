@@ -8,6 +8,7 @@ import { SocketProvider } from './SocketContext.jsx';
 
 export const DataContext = createContext(null);
 export const useData = () => useContext(DataContext);
+import { useSocket } from './SocketContext.jsx';
 
 
 export const getRiskColor = (tier) => ({
@@ -29,13 +30,59 @@ export const STATUS_MAP = { overdue: "OVERDUE", escalated: "ESCALATED", pending:
 
 export const DataProvider = ({ children }) => {
   const [data, setData] = useState(null);
+  const [socketConnected, setSocketConnected] = useState(false);
 
-  useEffect(() => {
+  const socket = useSocket();
+
+  const fetchData = () => {
     fetch(`http://${window.location.hostname}:5002/api/data`)
       .then(res => res.json())
       .then(d => setData(d))
       .catch(console.error);
+  };
+
+  useEffect(() => {
+    fetchData();
   }, []);
+
+  useEffect(() => {
+    if (!socket) return;
+
+    socket.on("connect", () => {
+      console.log("Socket connected to server");
+      setSocketConnected(true);
+    });
+
+    socket.on("disconnect", () => {
+      console.log("Socket disconnected");
+      setSocketConnected(false);
+    });
+
+    socket.on("sos_update", (sosInfo) => {
+      console.log("SOS Update received via socket:", sosInfo);
+      // 1. Optimistic Update of local state immediately
+      setData(prev => {
+        if (!prev || !prev.patients) return prev;
+        const newPatients = prev.patients.map(p => {
+          if (p.patient_id === sosInfo.patient_id) {
+            return {
+              ...p,
+              sos_active: sosInfo.active,
+              sos_location: sosInfo.location,
+              sos_representative: sosInfo.representative
+            };
+          }
+          return p;
+        });
+        return { ...prev, patients: newPatients };
+      });
+
+      // 2. Refresh everything from server to be sure
+      fetchData();
+    });
+
+    return () => socket.off("sos_update");
+  }, [socket]);
 
   if (!data) return <div style={{ display: 'flex', height: '100vh', justifyContent: 'center', alignItems: 'center', fontFamily: '-apple-system, sans-serif' }}>Loading...</div>;
 
@@ -57,7 +104,8 @@ export const DataProvider = ({ children }) => {
     TEST_HISTORY: data.testHistory || {},
     OUTREACH_MSGS: data.outreachMsgs || {},
     OUTREACH_RESPONSES: data.outreachResponses || [],
-    getRiskTier, getRiskColor, getStatusBadge, getChannelIcon, diagIcon, DIAG_ABBR, STATUS_MAP
+    getRiskTier, getRiskColor, getStatusBadge, getChannelIcon, diagIcon, DIAG_ABBR, STATUS_MAP,
+    socketConnected
   };
 
   return <DataContext.Provider value={value}>{children}</DataContext.Provider>;

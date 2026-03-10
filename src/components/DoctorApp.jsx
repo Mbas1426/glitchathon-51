@@ -50,7 +50,7 @@ export default function DoctorApp({ doctor, onLogout }) {
     </svg>
   );
 
-  const { PHYSICIANS, PATIENTS, CARE_PROTOCOLS, OUTREACH_RESPONSES, getRiskTier } = useData();
+  const { PHYSICIANS, PATIENTS, CARE_PROTOCOLS, OUTREACH_RESPONSES, getRiskTier, socketConnected } = useData();
   const navigate = useNavigate();
   const location = useLocation();
   const { id } = useParams();
@@ -169,7 +169,9 @@ export default function DoctorApp({ doctor, onLogout }) {
   };
   const handleEscalate = (p) => { const doc = PHYSICIANS.find(ph => ph.physician_id === p.physician_id); showToast(`Escalated to ${doc?.physician_name}`, "warning"); };
 
+
   const myPatients = doctor ? PATIENTS.filter(p => p.physician_id === doctor.physician_id) : PATIENTS;
+  const activeSOS = myPatients.filter(p => p.sos_active);
   const filtered = myPatients.filter(p => {
     const risk = getRiskTier(p);
     return (filterRisk === "all" || risk === filterRisk)
@@ -217,6 +219,22 @@ export default function DoctorApp({ doctor, onLogout }) {
           </div>
         </header>
 
+        {activeSOS.length > 0 && (
+          <div style={{ background: C.red, color: "#fff", padding: "12px 32px", display: "flex", gap: 20, alignItems: "center" }} className="fadeSlide">
+            <span style={{ fontSize: 20 }}>🚨</span>
+            <div style={{ flex: 1 }}>
+              <span style={{ fontWeight: 800, fontSize: 13, letterSpacing: 0.5 }}>URGENT SOS SIGNAL: </span>
+              <span style={{ fontSize: 13 }}>{activeSOS.map(p => `${p.patient_name} (${p.diagnosis})`).join(", ")} triggered an emergency alert.</span>
+            </div>
+            <button
+              onClick={() => navigate(`/doctor/${id}/patients`)}
+              style={{ background: "#fff", border: "none", color: C.red, padding: "6px 14px", borderRadius: 8, fontSize: 11, fontWeight: 700, cursor: "pointer" }}
+            >
+              TAKE ACTION
+            </button>
+          </div>
+        )}
+
         <nav style={{ background: "rgba(255,255,255,0.5)", borderBottom: `1px solid ${C.border}`, padding: "12px 32px", display: "flex", alignItems: "center", gap: 8, backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)" }}>
           {NAV.map(n => (
             <button key={n.id} onClick={() => handleTabChange(n.id)} style={{ padding: "8px 16px", borderRadius: 20, border: "none", background: activeTab === n.id ? "#fff" : "transparent", fontSize: 13, cursor: "pointer", color: activeTab === n.id ? C.textTitle : C.textMuted, transition: "all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275)", fontWeight: activeTab === n.id ? 600 : 500, boxShadow: activeTab === n.id ? "0 2px 8px rgba(0,0,0,0.06), 0 0 0 1px rgba(0,0,0,0.04)" : "none", transform: activeTab === n.id ? "translateY(-1px)" : "translateY(0)", display: "flex", alignItems: "center", gap: 8 }}>
@@ -227,8 +245,10 @@ export default function DoctorApp({ doctor, onLogout }) {
           ))}
           <div style={{ flex: 1 }} />
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <PulseRing color="#2ecc71" size={7} />
-            <span style={{ fontSize: 12, color: "#2ecc71", fontWeight: 700 }}>System Active</span>
+            <PulseRing color={socketConnected ? "#2ecc71" : C.red} size={7} />
+            <span style={{ fontSize: 12, color: socketConnected ? "#2ecc71" : C.red, fontWeight: 700 }}>
+              {socketConnected ? "Live Connection" : "Connection Lost"}
+            </span>
           </div>
         </nav>
 
