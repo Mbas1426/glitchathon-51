@@ -11,7 +11,6 @@ const getJson = (filename) => {
   return JSON.parse(fs.readFileSync(filepath, "utf-8"));
 };
 
-// Helper to read/write outreach msgs
 const msgsPath = path.join(__dirname, "data", "outreach_msgs.json");
 const getMsgs = () => getJson("outreach_msgs.json");
 const saveMsgs = (data) => fs.writeFileSync(msgsPath, JSON.stringify(data, null, 2));
@@ -31,16 +30,13 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5002;
 
-// Middleware
 app.use(cors());
 app.use(express.json());
 
-// Health check
 app.get("/", (req, res) => {
   res.send({ status: "Backend running" });
 });
 
-// Master data endpoint
 app.get("/api/data", (req, res) => {
   try {
     res.json({
@@ -57,7 +53,6 @@ app.get("/api/data", (req, res) => {
   }
 });
 
-// Login endpoint
 app.post("/login", (req, res) => {
   const { role, id, password } = req.body;
   if (!id || !password || !role) return res.status(400).json({ error: "Missing credentials" });
@@ -66,12 +61,10 @@ app.post("/login", (req, res) => {
   const userKey = `${role}_${id}`;
 
   if (!users[userKey]) {
-    // First time login, save password
     users[userKey] = password;
     saveUsers(users);
     return res.json({ success: true, isNew: true });
   } else {
-    // Validate password
     if (users[userKey] === password) {
       return res.json({ success: true });
     } else {
@@ -80,7 +73,6 @@ app.post("/login", (req, res) => {
   }
 });
 
-// Outreach endpoints
 app.get("/outreach/:patient_id", (req, res) => {
   const { patient_id } = req.params;
   const msgs = getMsgs();
@@ -102,13 +94,12 @@ app.post("/doctor/send-outreach", (req, res) => {
   };
 
   if (!msgs[patient_id]) msgs[patient_id] = [];
-  msgs[patient_id].unshift(newMsg); // Newest first
+  msgs[patient_id].unshift(newMsg); 
 
   saveMsgs(msgs);
   res.json({ success: true, message: newMsg });
 });
 
-// Video Call Endpoints
 app.post("/api/call/initiate", (req, res) => {
   const { patient_id, roomId, callerName, doctor_id } = req.body;
   if (!patient_id || !roomId) return res.status(400).json({ error: "Missing required fields" });
@@ -153,11 +144,10 @@ app.post("/doctor/notify-nok", (req, res) => {
 
   if (pIdx === -1) return res.status(404).json({ error: "Patient not found" });
 
-  // Update NOK flag
+ 
   patients[pIdx].nok_notified = true;
   fs.writeFileSync(path.join(__dirname, "data", "patients.json"), JSON.stringify(patients, null, 2));
 
-  // Send message to patient
   const msgs = JSON.parse(fs.readFileSync(path.join(__dirname, "data", "outreach_msgs.json"), "utf-8"));
   const pIdStr = patient_id.toString();
   const newMsg = {
@@ -173,7 +163,6 @@ app.post("/doctor/notify-nok", (req, res) => {
   res.json({ success: true, message: "NOK notified and patient alerted." });
 });
 
-// Chat endpoint
 app.post("/chat", async (req, res) => {
   const { message, patient_id } = req.body;
 
@@ -195,7 +184,6 @@ app.post("/chat", async (req, res) => {
 
     const apiKey = process.env.GEMINI_API_KEY;
 
-    // Detect automatic conversation start
     let userMessage = message;
 
     if (message === "START_CONVERSATION") {
@@ -209,8 +197,6 @@ Start the conversation by:
 Keep the message short, supportive, and easy to understand.
 `;
     }
-
-    // System prompt with patient context
     const systemPrompt = `
 You are CareAgent, an AI healthcare assistant helping patients manage chronic diseases.
 Your goals:
@@ -289,19 +275,16 @@ const io = new Server(server, {
   }
 });
 
-// Real-time user connection mapping tracker
 const connectedUsers = {}; // Maps { role_id: socket.id }
 
 io.on("connection", (socket) => {
   console.log("Client connected:", socket.id);
 
-  // When a user logs in, they identify themselves to the socket server
   socket.on("register", (userId) => {
     connectedUsers[userId] = socket.id;
     console.log(`User registered: ${userId} -> ${socket.id}`);
   });
 
-  // Handle a call initiation
   socket.on("callUser", (data) => {
     // data: { userToCall, signalData, from, callerName }
     const targetSocket = connectedUsers[data.userToCall];
@@ -314,7 +297,6 @@ io.on("connection", (socket) => {
     }
   });
 
-  // Handle answering a call
   socket.on("answerCall", (data) => {
     // data: { to, signal }
     const targetSocket = connectedUsers[data.to];
@@ -323,7 +305,6 @@ io.on("connection", (socket) => {
     }
   });
 
-  // Handle declining/ending a call
   socket.on("declineCall", (data) => {
     const targetSocket = connectedUsers[data.to];
     if (targetSocket) {
@@ -339,7 +320,6 @@ io.on("connection", (socket) => {
   });
 
   socket.on("disconnect", () => {
-    // Cleanup the connection mapping on disconnect
     for (const [userId, socketId] of Object.entries(connectedUsers)) {
       if (socketId === socket.id) {
         delete connectedUsers[userId];
