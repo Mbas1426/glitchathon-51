@@ -34,7 +34,6 @@ export default function DocDashboard({ doctor, patients, critical, overdue, clos
 				</div>
 			))}
 
-			{/* Diagnosis breakdown */}
 			<div style={{ ...d.card, gridColumn: "1/3" }}>
 				<div style={d.cardHeader}><span style={d.cardTitle}>Diagnosis Breakdown</span></div>
 				<div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 12, marginTop: 14 }}>
@@ -49,7 +48,6 @@ export default function DocDashboard({ doctor, patients, critical, overdue, clos
 				</div>
 			</div>
 
-			{/* Protocols */}
 			<div style={{ ...d.card, gridColumn: "3/5" }}>
 				<div style={d.cardHeader}><span style={d.cardTitle}>Care Protocols</span></div>
 				<div style={{ marginTop: 14, display: "flex", flexDirection: "column", gap: 10 }}>
@@ -69,7 +67,6 @@ export default function DocDashboard({ doctor, patients, critical, overdue, clos
 				</div>
 			</div>
 
-			{/* Activity feed */}
 			<div style={{ ...d.card, gridColumn: "1/5" }}>
 				<div style={d.cardHeader}><span style={d.cardTitle}>Recent Activity Feed</span><span style={{ fontSize: 10, color: C.textDim }}>Live</span></div>
 				<div style={{ marginTop: 12, display: "flex", flexDirection: "column", gap: 8 }}>
