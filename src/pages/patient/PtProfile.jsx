@@ -1,9 +1,10 @@
 import { pt } from '../../styles/patientStyles.jsx';
 import { C } from '../../styles/homeStyles.jsx';
-import { STATUS_MAP } from "../CareAgent_Combined.jsx";
+import { useData } from "../CareAgent_Combined.jsx";
 
 
 export default function PtProfile({ p, doc, proto }) {
+  const { STATUS_MAP } = useData();
   const sections = [
     {
       section: "PERSONAL INFORMATION", items: [

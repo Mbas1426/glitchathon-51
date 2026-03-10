@@ -4,17 +4,27 @@ const dotenv = require("dotenv");
 const axios = require("axios");
 const fs = require("fs");
 const path = require("path");
-const { PATIENTS, TEST_HISTORY } = require("./data/patientData");
+
+const getJson = (filename) => {
+  const filepath = path.join(__dirname, "data", filename);
+  if (!fs.existsSync(filepath)) return Array.isArray(filename.match(/msgs|responses|history/)) ? {} : [];
+  return JSON.parse(fs.readFileSync(filepath, "utf-8"));
+};
 
 // Helper to read/write outreach msgs
 const msgsPath = path.join(__dirname, "data", "outreach_msgs.json");
-const getMsgs = () => JSON.parse(fs.readFileSync(msgsPath, "utf-8"));
+const getMsgs = () => JgetJson("outreach_msgs.json");
 const saveMsgs = (data) => fs.writeFileSync(msgsPath, JSON.stringify(data, null, 2));
+
+const usersPath = path.join(__dirname, "data", "users.json");
+if (!fs.existsSync(usersPath)) fs.writeFileSync(usersPath, JSON.stringify({}));
+const getUsers = () => JSON.parse(fs.readFileSync(usersPath, "utf-8"));
+const saveUsers = (data) => fs.writeFileSync(usersPath, JSON.stringify(data, null, 2));
 
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5002;
 
 // Middleware
 app.use(cors());
@@ -23,6 +33,46 @@ app.use(express.json());
 // Health check
 app.get("/", (req, res) => {
   res.send({ status: "Backend running" });
+});
+
+// Master data endpoint
+app.get("/api/data", (req, res) => {
+  try {
+    res.json({
+      patients: getJson("patients.json"),
+      physicians: getJson("physicians.json"),
+      protocols: getJson("care_protocols.json"),
+      appointments: getJson("appointments.json"),
+      testHistory: getJson("test_history.json"),
+      outreachMsgs: getJson("outreach_msgs.json"),
+      outreachResponses: getJson("outreach_responses.json"),
+    });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to load data from JSON files" });
+  }
+});
+
+// Login endpoint
+app.post("/login", (req, res) => {
+  const { role, id, password } = req.body;
+  if (!id || !password || !role) return res.status(400).json({ error: "Missing credentials" });
+
+  const users = getUsers();
+  const userKey = `${role}_${id}`;
+
+  if (!users[userKey]) {
+    // First time login, save password
+    users[userKey] = password;
+    saveUsers(users);
+    return res.json({ success: true, isNew: true });
+  } else {
+    // Validate password
+    if (users[userKey] === password) {
+      return res.json({ success: true });
+    } else {
+      return res.status(401).json({ error: "Invalid password" });
+    }
+  }
 });
 
 // Outreach endpoints
@@ -122,6 +172,11 @@ Instructions:
 - Always sound supportive and caring.
 `;
 
+    const activeApiKey = process.env.GEMINI_API_KEY || process.env["GEMINI_API_KEY-rem-later"];
+    if (!activeApiKey) {
+      return res.status(500).json({ error: "API key is missing" });
+    }
+
     const response = await axios.post(
       "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
       {
@@ -134,7 +189,7 @@ Instructions:
       },
       {
         headers: {
-          Authorization: `Bearer ${apiKey}`,
+          Authorization: `Bearer ${activeApiKey}`,
           "Content-Type": "application/json"
         }
       }
@@ -151,6 +206,78 @@ Instructions:
   }
 });
 
-app.listen(PORT, () => {
+const http = require("http");
+const { Server } = require("socket.io");
+
+const server = http.createServer(app);
+const io = new Server(server, {
+  cors: {
+    origin: "*",
+    methods: ["GET", "POST"]
+  }
+});
+
+// Real-time user connection mapping tracker
+const connectedUsers = {}; // Maps { role_id: socket.id }
+
+io.on("connection", (socket) => {
+  console.log("Client connected:", socket.id);
+
+  // When a user logs in, they identify themselves to the socket server
+  socket.on("register", (userId) => {
+    connectedUsers[userId] = socket.id;
+    console.log(`User registered: ${userId} -> ${socket.id}`);
+  });
+
+  // Handle a call initiation
+  socket.on("callUser", (data) => {
+    // data: { userToCall, signalData, from, callerName }
+    const targetSocket = connectedUsers[data.userToCall];
+    if (targetSocket) {
+      io.to(targetSocket).emit("callUser", {
+        signal: data.signalData,
+        from: data.from,
+        callerName: data.callerName
+      });
+    }
+  });
+
+  // Handle answering a call
+  socket.on("answerCall", (data) => {
+    // data: { to, signal }
+    const targetSocket = connectedUsers[data.to];
+    if (targetSocket) {
+      io.to(targetSocket).emit("callAccepted", data.signal);
+    }
+  });
+
+  // Handle declining/ending a call
+  socket.on("declineCall", (data) => {
+    const targetSocket = connectedUsers[data.to];
+    if (targetSocket) {
+      io.to(targetSocket).emit("callDeclined");
+    }
+  });
+
+  socket.on("endCall", (data) => {
+    const targetSocket = connectedUsers[data.to];
+    if (targetSocket) {
+      io.to(targetSocket).emit("callEnded");
+    }
+  });
+
+  socket.on("disconnect", () => {
+    // Cleanup the connection mapping on disconnect
+    for (const [userId, socketId] of Object.entries(connectedUsers)) {
+      if (socketId === socket.id) {
+        delete connectedUsers[userId];
+        console.log(`User disconnected: ${userId}`);
+        break;
+      }
+    }
+  });
+});
+
+server.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });

@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { C } from '../../styles/homeStyles.jsx'
-import { diagIcon } from '../CareAgent_Combined.jsx'
-import { getRiskTier, getRiskColor } from "../CareAgent_Combined.jsx";
+import { useData } from '../CareAgent_Combined.jsx'
 
 export default function DocOutreach({ patients, responses, onSend, sentMsgs, sendingMsg }) {
+	const { getRiskTier, getRiskColor, diagIcon } = useData();
 	const [expanded, setExpanded] = useState(null);
 	const [customMsgs, setCustomMsgs] = useState({});
 
@@ -17,19 +17,18 @@ export default function DocOutreach({ patients, responses, onSend, sentMsgs, sen
 
 	return (
 		<div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-			<div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 14px", background: C.bgCard, borderRadius: 12, border: `1px solid ${C.border}` }}>
-				<div style={{ fontSize: 12, color: C.textSub }}>
-					<span style={{ color: C.orange }}>◉</span>
+			<div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 16px", background: C.bgCard, borderRadius: 12, border: `1px solid ${C.border}` }}>
+				<div style={{ fontSize: 13, color: C.textTitle, fontWeight: 600 }}>
 					{overdueList.length} patients awaiting outreach
 				</div>
 				<div style={{ display: "flex", gap: 10 }}>
-					<div style={{ fontSize: 11, color: C.textMuted, padding: "4px 10px", background: C.bgDeep, borderRadius: 8, display: "flex", gap: 5, alignItems: "center" }}>
-						<span style={{ color: C.green }}>✓</span>
-						{sentMsgs.length} sent
+					<div style={{ fontSize: 11, color: C.textTitle, padding: "4px 10px", background: C.bgDeep, borderRadius: 8, display: "flex", gap: 8, alignItems: "center", fontWeight: 600, border: `1px solid ${C.border}` }}>
+						<span style={{ color: C.green }}>Sent:</span>
+						{sentMsgs.length}
 					</div>
-					<div style={{ fontSize: 11, color: C.textMuted, padding: "4px 10px", background: C.bgDeep, borderRadius: 8, display: "flex", gap: 5, alignItems: "center" }}>
-						<span style={{ color: C.blue }}>◈</span>
-						{responses.length} responded
+					<div style={{ fontSize: 11, color: C.textTitle, padding: "4px 10px", background: C.bgDeep, borderRadius: 8, display: "flex", gap: 8, alignItems: "center", fontWeight: 600, border: `1px solid ${C.border}` }}>
+						<span style={{ color: C.blue }}>Responses:</span>
+						{responses.length}
 					</div>
 				</div>
 			</div>

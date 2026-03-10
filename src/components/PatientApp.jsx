@@ -1,7 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation, Routes, Route, Navigate, useParams } from "react-router-dom";
-import { getRiskTier, CARE_PROTOCOLS, PHYSICIANS, OUTREACH_MSGS, APPOINTMENTS, TEST_HISTORY, STATUS_MAP } from "../pages/CareAgent_Combined.jsx";
-import { pt } from '../styles/patientStyles'
+import { useData } from "../CareAgent_Combined"; import { pt } from '../styles/patientStyles'
 import { C } from '../styles/homeStyles.jsx'
 import { d } from '../styles/doctorStyles.jsx';
 import PtOverview from "../pages/patient/PtOverview.jsx";
@@ -9,19 +8,149 @@ import PtTests from "../pages/patient/PtTests.jsx";
 import PtAppointments from "../pages/patient/PtAppointments.jsx";
 import PtMessages from "../pages/patient/PtMessages.jsx";
 import PtProfile from "../pages/patient/PtProfile.jsx";
+import VideoCallModal from "./VideoCallModal.jsx";
+import { useSocket } from '../SocketContext.jsx';
+import Peer from 'simple-peer'
 import { CSS } from '../styles/css.jsx';
 
 export default function PatientApp({ patient: p, onLogout }) {
+  const SvgBackground = () => (
+    <svg
+      style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', zIndex: 0, pointerEvents: 'none' }}
+      preserveAspectRatio="xMidYMid slice"
+      viewBox="0 0 1440 900"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <defs>
+        <linearGradient id="gradOrangeTop" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#FF3b30" />
+          <stop offset="100%" stopColor="#FF9500" />
+        </linearGradient>
+        <linearGradient id="gradOrangeBot" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stopColor="#FF9500" />
+          <stop offset="100%" stopColor="#FF3B30" />
+        </linearGradient>
+      </defs>
+
+      <rect width="1440" height="900" fill="#ffffff" />
+
+      {/* Light gray wave */}
+      <path fill="#F4F6F9" d="M0,900 L0,700 C400,600 500,800 900,600 C1200,450 1350,550 1440,450 L1440,900 Z" />
+      <path fill="#EAECEF" d="M0,900 L0,750 C300,700 400,850 800,750 C1100,650 1300,800 1440,700 L1440,900 Z" opacity="0.6" />
+
+      {/* Top Right Dark Blue */}
+      <path fill="#2E557A" d="M600,0 C800,250 1100,150 1440,300 L1440,0 Z" />
+
+      {/* Top Left Orange */}
+      <path fill="url(#gradOrangeTop)" d="M0,0 L600,0 C500,150 600,250 400,350 C250,425 250,550 0,550 Z" />
+      <path fill="#FF3B30" opacity="0.8" d="M0,0 L450,0 C350,150 400,250 250,350 C100,450 100,500 0,400 Z" />
+
+      {/* Bottom Right Orange */}
+      <path fill="url(#gradOrangeBot)" d="M800,900 C900,750 1000,850 1150,650 C1250,500 1350,450 1440,550 L1440,900 Z" />
+
+      {/* Blue Pill */}
+      <rect x="-30" y="650" width="230" height="70" rx="35" fill="#297FC6" />
+    </svg>
+  );
+
+  const { getRiskTier, CARE_PROTOCOLS, PHYSICIANS, OUTREACH_MSGS, APPOINTMENTS, TEST_HISTORY, STATUS_MAP } = useData();
   const navigate = useNavigate();
   const location = useLocation();
   const { id } = useParams();
 
   const [msgs, setMsgs] = useState(OUTREACH_MSGS[p.patient_id] || []);
+  const socket = useSocket();
+
+  const [callState, setCallState] = useState({
+    isCalling: false,
+    receivingCall: false,
+    caller: "",
+    callerName: "",
+    callerSignal: null,
+    callAccepted: false,
+    callEnded: false,
+  });
+
+  const [localStream, setLocalStream] = useState(null);
+  const [remoteStream, setRemoteStream] = useState(null);
+  const connectionRef = useRef();
+
+  useEffect(() => {
+    if (!socket) return;
+
+    socket.on("callUser", (data) => {
+      setCallState(prev => ({
+        ...prev,
+        receivingCall: true,
+        caller: data.from,
+        callerName: data.callerName,
+        callerSignal: data.signal,
+      }));
+    });
+
+    socket.on("callEnded", () => {
+      endCall();
+    });
+
+    return () => {
+      socket.off("callUser");
+      socket.off("callEnded");
+    };
+  }, [socket]);
+
+  const answerCall = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+      setLocalStream(stream);
+      setCallState(prev => ({ ...prev, callAccepted: true, receivingCall: false }));
+
+      const peer = new Peer({
+        initiator: false,
+        trickle: false,
+        stream: stream
+      });
+
+      peer.on("signal", (data) => {
+        socket.emit("answerCall", { signal: data, to: callState.caller });
+      });
+
+      peer.on("stream", (currentStream) => {
+        setRemoteStream(currentStream);
+      });
+
+      peer.signal(callState.callerSignal);
+      connectionRef.current = peer;
+    } catch (err) {
+      console.error("Failed to answer call", err);
+      // Fallback or alert user
+    }
+  };
+
+  const declineCall = () => {
+    setCallState(prev => ({ ...prev, receivingCall: false }));
+    socket.emit("declineCall", { to: callState.caller });
+  };
+
+  const endCall = () => {
+    setCallState({ isCalling: false, receivingCall: false, caller: "", callerName: "", callerSignal: null, callAccepted: false, callEnded: true });
+
+    if (connectionRef.current) connectionRef.current.destroy();
+
+    if (localStream) {
+      localStream.getTracks().forEach(track => track.stop());
+      setLocalStream(null);
+    }
+    setRemoteStream(null);
+
+    if (callState.caller) {
+      socket.emit("endCall", { to: callState.caller });
+    }
+  };
 
   useEffect(() => {
     const fetchMsgs = async () => {
       try {
-        const res = await fetch(`http://localhost:5000/outreach/${p.patient_id}`);
+        const res = await fetch(`http://${window.location.hostname}:5002/outreach/${p.patient_id}`);
         if (res.ok) {
           const data = await res.json();
           setMsgs(data);
@@ -53,54 +182,98 @@ export default function PatientApp({ patient: p, onLogout }) {
 
   return (
     <div style={pt.root}>
-      <style>{CSS}</style>
-      <header style={pt.topbar}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <div style={d.logoMark}><span style={{ fontSize: 16, color: "#fff" }}>✚</span></div>
-          <div>
-            <span style={{ fontSize: 12, fontWeight: 700, color: C.text }}>CareAgent</span>
-            <span style={{ fontSize: 12, color: C.textDimmer, margin: "0 6px" }}>/</span>
-            <span style={{ fontSize: 12, color: C.textMuted }}>Patient Portal</span>
+      <SvgBackground />
+      <div style={{ ...pt.appContainer, zIndex: 1, position: 'relative' }}>
+        <style>{CSS}</style>
+        <header style={pt.topbar}>
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <div style={d.logoMark}><span style={{ fontSize: 18, color: "#fff" }}></span></div>
+            <div>
+              <span style={{ fontSize: 16, fontWeight: 600, color: C.textTitle, letterSpacing: "-0.5px" }}>CareAgent</span>
+              <span style={{ fontSize: 13, color: C.textMuted, margin: "0 10px" }}>/</span>
+              <span style={{ fontSize: 13, color: C.textMuted, fontWeight: 500 }}>Patient Portal</span>
+            </div>
           </div>
-        </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-          <div style={{ textAlign: "right" }}>
-            <div style={{ fontSize: 12, fontWeight: 700, color: C.text }}>{p.patient_name}</div>
-            <div style={{ fontSize: 9, color: C.textMuted, letterSpacing: 1 }}>#{String(p.patient_id).padStart(4, "0")} · {p.diagnosis}</div>
+          <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+            <div style={{ textAlign: "right" }}>
+              <div style={{ fontSize: 15, fontWeight: 600, color: C.textTitle }}>{p.patient_name}</div>
+              <div style={{ fontSize: 12, color: C.textMuted, letterSpacing: 0.5, fontWeight: 400 }}>#{String(p.patient_id).padStart(4, "0")} · {p.diagnosis}</div>
+            </div>
+            <span
+              style={{
+                fontSize: 11, padding: "4px 10px", borderRadius: 8, letterSpacing: 0.5, fontWeight: 500,
+                border: `1px solid ${isUrgent ? C.red : isOverdue ? "#FF9500" : C.border}`,
+                color: isUrgent ? C.red : isOverdue ? "#FF9500" : C.textMuted,
+              }}
+            >
+              {STATUS_MAP[p.status]}
+            </span>
+            <button
+              onClick={onLogout}
+              style={{ fontSize: 13, padding: "8px 16px", border: `1px solid ${C.border}`, background: "rgba(255,255,255,0.5)", cursor: "pointer", color: C.textTitle, borderRadius: 10, fontWeight: 500, transition: "all 0.2s" }}
+            >
+              Sign Out
+            </button>
           </div>
-          <span style={{ fontSize: 9, padding: "3px 8px", border: `1px solid ${isUrgent ? C.red : isOverdue ? C.orange : C.border}`, color: isUrgent ? C.red : isOverdue ? C.orange : C.textMuted, borderRadius: 6, letterSpacing: 1, fontWeight: isUrgent ? 700 : 400 }}>{STATUS_MAP[p.status]}</span>
-          <button onClick={onLogout} style={{ fontSize: 10, padding: "5px 10px", border: `1px solid ${C.border}`, background: "transparent", cursor: "pointer", color: C.textMuted, borderRadius: 7 }}>Sign Out</button>
+        </header>
+
+
+        <nav style={{ background: "rgba(255,255,255,0.5)", borderBottom: `1px solid ${C.border}`, padding: "12px 32px", display: "flex", alignItems: "center", gap: 8, backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)" }}>
+          {TABS.map(t => (
+            <button key={t.id} onClick={() => navigate(`/patient/${id}/${t.id}`)} style={{ padding: "8px 16px", borderRadius: 20, border: "none", background: tab === t.id ? "#fff" : "transparent", fontSize: 13, cursor: "pointer", color: tab === t.id ? C.textTitle : C.textMuted, transition: "all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275)", fontWeight: tab === t.id ? 600 : 500, boxShadow: tab === t.id ? "0 2px 8px rgba(0,0,0,0.06), 0 0 0 1px rgba(0,0,0,0.04)" : "none", transform: tab === t.id ? "translateY(-1px)" : "translateY(0)" }}>
+              {t.label}
+            </button>
+          ))}
+          <div style={{ flex: 1 }} />
+          <div style={{ fontSize: 12, color: C.textMuted, letterSpacing: 0.5, fontWeight: 500 }}>Kathir Memorial · Chennai</div>
+        </nav>
+
+        <div style={{ flex: 1, padding: "32px 40px", maxWidth: 1200, width: "100%", margin: "0 auto", overflowY: "auto" }} className="fadeIn" key={tab}>
+          <Routes>
+            <Route path="overview" element={<PtOverview p={p} proto={proto} doc={doc} hist={hist} msgs={msgs} />} />
+            <Route path="tests" element={<PtTests p={p} proto={proto} hist={hist} />} />
+            <Route path="appointments" element={<PtAppointments p={p} appts={appts} doc={doc} proto={proto} />} />
+            <Route path="messages" element={<PtMessages p={p} msgs={msgs} />} />
+            <Route path="profile" element={<PtProfile p={p} doc={doc} proto={proto} />} />
+            <Route path="/" element={<Navigate to={`/patient/${id}/overview`} replace />} />
+          </Routes>
         </div>
-      </header>
 
-      {isUrgent && (
-        <div style={{ background: C.redDim, borderBottom: `1px solid ${C.red}40`, color: C.red, padding: "10px 28px", display: "flex", alignItems: "center", gap: 14 }} className="fadeSlide">
-          <span style={{ fontSize: 16, fontWeight: 700 }}>!</span>
-          <span style={{ fontSize: 11, lineHeight: 1.5, flex: 1 }}>Action required — Your {p.last_test} result of <strong>{p.last_value} {proto?.unit}</strong> is critically above the safe range. Contact {doc?.physician_name} immediately.</span>
-          <span style={{ fontSize: 11, fontWeight: 700 }}>{doc?.phone}</span>
-        </div>
-      )}
+        {/* INCOMING CALL BANNER / MODAL */}
+        {callState.receivingCall && !callState.callAccepted && (
+          <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(10px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999 }}>
+            <div style={{ background: '#fff', padding: 40, borderRadius: 24, textAlign: 'center', boxShadow: '0 20px 40px rgba(0,0,0,0.2)' }}>
+              <div style={{ fontSize: 24, fontWeight: 'bold', marginBottom: 10 }}>Incoming Video Call</div>
+              <div style={{ fontSize: 18, color: C.textMuted, marginBottom: 30 }}>{callState.callerName} is calling you...</div>
 
-      <nav style={{ background: C.bgCard, borderBottom: `1px solid ${C.border}`, padding: "0 28px", display: "flex", alignItems: "center", gap: 0 }}>
-        {TABS.map(t => (
-          <button key={t.id} onClick={() => navigate(`/patient/${id}/${t.id}`)} style={{ padding: "12px 16px", border: "none", borderBottom: `2px solid ${tab === t.id ? C.blue : "transparent"}`, background: "transparent", fontSize: 11, fontFamily: "monospace", cursor: "pointer", color: tab === t.id ? C.blue : C.textMuted, letterSpacing: 0.5, transition: "all 0.15s", fontWeight: tab === t.id ? 700 : 400 }}>
-            {t.label}
-          </button>
-        ))}
-        <div style={{ flex: 1 }} />
-        <div style={{ fontSize: 9, color: C.textDimmer, letterSpacing: 1 }}>Kathir Memorial · Chennai</div>
-      </nav>
+              <div style={{ display: 'flex', gap: 20, justifyContent: 'center' }}>
+                <button
+                  onClick={declineCall}
+                  style={{ background: C.red, color: 'white', padding: '12px 24px', borderRadius: 20, border: 'none', fontSize: 16, fontWeight: 'bold', cursor: 'pointer' }}
+                >
+                  Decline
+                </button>
+                <button
+                  onClick={answerCall}
+                  style={{ background: C.green, color: 'white', padding: '12px 24px', borderRadius: 20, border: 'none', fontSize: 16, fontWeight: 'bold', cursor: 'pointer' }}
+                >
+                  Accept
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
-      <div style={{ flex: 1, padding: "24px 28px", maxWidth: 1100, width: "100%", margin: "0 auto", overflowY: "auto" }} className="fadeIn" key={tab}>
-        <Routes>
-          <Route path="overview" element={<PtOverview p={p} proto={proto} doc={doc} hist={hist} msgs={msgs} />} />
-          <Route path="tests" element={<PtTests p={p} proto={proto} hist={hist} />} />
-          <Route path="appointments" element={<PtAppointments p={p} appts={appts} doc={doc} proto={proto} />} />
-          <Route path="messages" element={<PtMessages p={p} msgs={msgs} />} />
-          <Route path="profile" element={<PtProfile p={p} doc={doc} proto={proto} />} />
-          <Route path="/" element={<Navigate to={`/patient/${id}/overview`} replace />} />
-        </Routes>
+        {/* ACTIVE CALL UI */}
+        {callState.callAccepted && (
+          <VideoCallModal
+            localStream={localStream}
+            remoteStream={remoteStream}
+            callerName={callState.callerName}
+            onEndCall={endCall}
+          />
+        )}
       </div>
-    </div>
+    </div >
   );
 }

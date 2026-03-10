@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { C } from '../../styles/homeStyles.jsx'
 import { d } from '../../styles/doctorStyles.jsx'
-import { diagIcon } from '../CareAgent_Combined.jsx'
-import { getRiskTier, getRiskColor } from "../CareAgent_Combined.jsx";
 import PulseRing from '../../components/PulseRing.jsx'
+import { useData } from "../CareAgent_Combined.jsx";
 
 export default function DocCareGaps({ patients, gapsLog, setGapsLog, showToast }) {
+	const { getRiskTier, getRiskColor, diagIcon } = useData();
 	const [closing, setClosing] = useState(null);
 	const closeGap = (p) => {
 		setClosing(p.patient_id);
@@ -34,16 +34,16 @@ export default function DocCareGaps({ patients, gapsLog, setGapsLog, showToast }
 				{byDiag.map((b, i) => {
 					const pct = Math.round((b.open / b.total) * 100);
 					return (
-						<div key={i} style={{ ...d.card, textAlign: "center" }}>
-							<div style={{ fontSize: 22 }}>{diagIcon(b.d)}</div>
-							<div style={{ fontSize: 12, color: C.text, fontWeight: 600, marginTop: 6 }}>{b.d}</div>
-							<div style={{ fontSize: 24, color: pct > 60 ? C.red : C.orange, fontWeight: 700, marginTop: 4 }}>{pct}%</div>
-							<div style={{ fontSize: 10, color: C.textMuted }}>{b.open}/{b.total} open gaps</div>
-							<div style={{ height: 3, background: C.bgRow, borderRadius: 2, marginTop: 8, overflow: "hidden" }}>
-								<div style={{ height: "100%", width: `${pct}%`, background: pct > 60 ? C.red : C.orange, borderRadius: 2 }} />
+						<div key={i} style={{ ...d.card, textAlign: "center", padding: "20px 12px" }}>
+							<div style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: 44, height: 44, background: C.bgApp, borderRadius: 12, fontSize: 14, fontWeight: 700, color: C.textTitle }}>{diagIcon(b.d)}</div>
+							<div style={{ fontSize: 11, color: C.textMuted, fontWeight: 600, marginTop: 10, letterSpacing: 0.5, textTransform: "uppercase" }}>{b.d}</div>
+							<div style={{ fontSize: 26, color: pct > 60 ? C.red : C.textTitle, fontWeight: 700, marginTop: 4 }}>{pct}%</div>
+							<div style={{ fontSize: 11, color: C.textMuted, marginTop: 4 }}>{b.open} / {b.total} open</div>
+							<div style={{ height: 4, background: C.bgApp, borderRadius: 2, marginTop: 12, overflow: "hidden" }}>
+								<div style={{ height: "100%", width: `${pct}%`, background: pct > 60 ? C.red : C.blue, borderRadius: 2 }} />
 							</div>
 						</div>
-					);
+					)
 				})}
 			</div>
 			<div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>

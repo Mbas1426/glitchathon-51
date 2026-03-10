@@ -1,16 +1,47 @@
 export const CSS = `
-  @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Sora:wght@400;600;700&display=swap');
-  *{box-sizing:border-box;margin:0;padding:0;}
-  body{background:#f0f4ff;}
-  @keyframes fadeIn{from{opacity:0}to{opacity:1}}
-  @keyframes fadeSlide{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
-  @keyframes pulseRing{0%{transform:scale(1);opacity:0.3}70%{transform:scale(2.2);opacity:0}100%{transform:scale(1);opacity:0}}
-  .fadeIn{animation:fadeIn 0.22s ease}
-  .fadeSlide{animation:fadeSlide 0.28s ease}
-  button:hover{opacity:0.82;transition:opacity 0.15s}
-  ::-webkit-scrollbar{width:3px}
-  ::-webkit-scrollbar-track{background:#f0f4ff}
-  ::-webkit-scrollbar-thumb{background:#d4ddf5}
-  tr:hover{background:rgba(14,127,194,0.03)!important}
-  input::placeholder,textarea::placeholder{color:#b8c4dc}
+  @import url('https://fonts.googleapis.com/css2?family=Merriweather:ital,opsz,wght@0,18..144,300..900;1,18..144,300..900&family=Orbitron:wght@400..900&display=swap');
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { 
+    background: linear-gradient(135deg, #f5f5f7, #eef1f6); 
+    font-family: 'Merriweather', serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  @keyframes fadeSlide {
+    from { opacity: 0; transform: translateY(10px) }
+    to { opacity: 1; transform: translateY(0) }
+  }
+  .fadeSlide { animation: fadeSlide 0.4s cubic-bezier(0.16, 1, 0.3, 1) }
+  
+  .appleCard {
+    background: #ffffff;
+    border-radius: 18px;
+    padding: 32px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    border: 1px solid #f0f0f0;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.05);
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .appleCard:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 16px 40px rgba(0,0,0,0.10);
+  }
+  .appleCard:active {
+    transform: scale(0.98);
+    background: #f2f8ff;
+    border-color: #cfe3ff;
+  }
+  
+  ::-webkit-scrollbar { width: 4px; height: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); border-radius: 4px; }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,0.25); }
+  
+  button {
+    font-family: inherit;
+  }
+  input::placeholder { color: #86868b; }
 `;
