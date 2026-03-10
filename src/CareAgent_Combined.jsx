@@ -9,7 +9,6 @@ import { SocketProvider } from './SocketContext.jsx';
 export const DataContext = createContext(null);
 export const useData = () => useContext(DataContext);
 
-// ─── Helpers (Static) ─────────────────────────────────────────────────────────
 
 export const getRiskColor = (tier) => ({
   critical: C.red, high: C.orange, moderate: C.green, low: C.blue,
