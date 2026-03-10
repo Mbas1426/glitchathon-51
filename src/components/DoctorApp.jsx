@@ -36,21 +36,16 @@ export default function DoctorApp({ doctor, onLogout }) {
 
       <rect width="1440" height="900" fill="#ffffff" />
 
-      {/* Light gray wave */}
       <path fill="#F4F6F9" d="M0,900 L0,700 C400,600 500,800 900,600 C1200,450 1350,550 1440,450 L1440,900 Z" />
       <path fill="#EAECEF" d="M0,900 L0,750 C300,700 400,850 800,750 C1100,650 1300,800 1440,700 L1440,900 Z" opacity="0.6" />
 
-      {/* Top Right Dark Blue */}
       <path fill="#2E557A" d="M600,0 C800,250 1100,150 1440,300 L1440,0 Z" />
 
-      {/* Top Left Orange */}
       <path fill="url(#gradOrangeTop)" d="M0,0 L600,0 C500,150 600,250 400,350 C250,425 250,550 0,550 Z" />
       <path fill="#FF3B30" opacity="0.8" d="M0,0 L450,0 C350,150 400,250 250,350 C100,450 100,500 0,400 Z" />
 
-      {/* Bottom Right Orange */}
       <path fill="url(#gradOrangeBot)" d="M800,900 C900,750 1000,850 1150,650 C1250,500 1350,450 1440,550 L1440,900 Z" />
 
-      {/* Blue Pill */}
       <rect x="-30" y="650" width="230" height="70" rx="35" fill="#297FC6" />
     </svg>
   );
@@ -60,8 +55,6 @@ export default function DoctorApp({ doctor, onLogout }) {
   const location = useLocation();
   const { id } = useParams();
 
-  // Extract active tab correctly by looking for the segment after the ID
-  // e.g. /doctor/1/dashboard -> dashboard
   const pathParts = location.pathname.split('/');
   const activeTab = pathParts[pathParts.indexOf(id) + 1] || "dashboard";
   const socket = useSocket();
@@ -91,19 +84,15 @@ export default function DoctorApp({ doctor, onLogout }) {
   useEffect(() => {
     if (!socket) return;
 
-    // We no longer rely on socket.io for call events in the JSON polling architecture
-    // Doctor will just stay in the room until they click End Call.
   }, [socket, doctor.physician_id]);
 
   const initiateCall = async (patient) => {
     try {
       const targetUserId = `patient_${patient.patient_id}`;
-      // Generate a unique, unpredictable room ID securely for Jitsi
       const roomId = `CareAgent-${doctor.physician_id}-${patient.patient_id}-${Math.random().toString(36).substring(2, 10)}`;
 
       setCallState(prev => ({ ...prev, isCalling: true, caller: patient.patient_name, targetUserId, roomId }));
 
-      // Signal the other user by saving the room in the backend JSON database
       await fetch(`http://${window.location.hostname}:5002/api/call/initiate`, {
         method: 'POST',
         headers: {
@@ -129,7 +118,6 @@ export default function DoctorApp({ doctor, onLogout }) {
 
     setCallState({ isCalling: false, receivingCall: false, caller: "", targetUserId: "", roomId: null, callAccepted: false, callEnded: true });
 
-    // Remove the active call from the JSON database
     if (patientId) {
       try {
         await fetch(`http://${window.location.hostname}:5002/api/call/end`, {
