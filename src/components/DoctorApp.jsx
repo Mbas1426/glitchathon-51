@@ -70,6 +70,7 @@ export default function DoctorApp({ doctor, onLogout }) {
   const [callState, setCallState] = useState({
     isCalling: false,
     receivingCall: false,
+    targetUserId: "",
     caller: "",
     callerSignal: null,
     callAccepted: false,
@@ -94,6 +95,9 @@ export default function DoctorApp({ doctor, onLogout }) {
 
   useEffect(() => {
     if (!socket) return;
+    
+    // Register the doctor to socket if accessed directly via URL or page refresh
+    socket.emit("register", `doctor_${doctor.physician_id}`);
 
     socket.on("callAccepted", (signal) => {
       setCallState(prev => ({ ...prev, callAccepted: true }));
@@ -116,13 +120,14 @@ export default function DoctorApp({ doctor, onLogout }) {
       socket.off("callDeclined");
       socket.off("callEnded");
     };
-  }, [socket]);
+  }, [socket, doctor.physician_id]);
 
   const initiateCall = async (patient) => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
       setLocalStream(stream);
-      setCallState(prev => ({ ...prev, isCalling: true, caller: patient.patient_name }));
+      const targetUserId = `patient_${patient.patient_id}`;
+      setCallState(prev => ({ ...prev, isCalling: true, caller: patient.patient_name, targetUserId }));
 
       const peer = new Peer({
         initiator: true,
@@ -132,7 +137,7 @@ export default function DoctorApp({ doctor, onLogout }) {
 
       peer.on("signal", (data) => {
         socket.emit("callUser", {
-          userToCall: `patient_${patient.patient_id}`,
+          userToCall: targetUserId,
           signalData: data,
           from: `doctor_${doctor.physician_id}`,
           callerName: `Dr. ${doctor.physician_name}`
@@ -152,7 +157,10 @@ export default function DoctorApp({ doctor, onLogout }) {
   };
 
   const endCall = () => {
-    setCallState({ isCalling: false, receivingCall: false, caller: "", callerSignal: null, callAccepted: false, callEnded: true });
+    // Preserve targetUserId to send the endCall event correctly, but clear the rest
+    const targetUserId = callState.targetUserId;
+    
+    setCallState({ isCalling: false, receivingCall: false, caller: "", targetUserId: "", callerSignal: null, callAccepted: false, callEnded: true });
 
     if (connectionRef.current) {
       connectionRef.current.destroy();
@@ -164,8 +172,9 @@ export default function DoctorApp({ doctor, onLogout }) {
     }
     setRemoteStream(null);
 
-    if (callState.caller) {
-      socket.emit("endCall", { to: `patient_${doctor.physician_id}` }); // Fallback logic would properly track the current connected patient ID
+    // If we have an active call context, tell the patient we hung up
+    if (targetUserId) {
+      socket.emit("endCall", { to: targetUserId });
     }
   };
 

@@ -78,6 +78,9 @@ export default function PatientApp({ patient: p, onLogout }) {
 
   useEffect(() => {
     if (!socket) return;
+    
+    // Register the socket connection the patient portal accesses it directly or reloads
+    socket.emit("register", `patient_${p.patient_id}`);
 
     socket.on("callUser", (data) => {
       setCallState(prev => ({
@@ -97,7 +100,7 @@ export default function PatientApp({ patient: p, onLogout }) {
       socket.off("callUser");
       socket.off("callEnded");
     };
-  }, [socket]);
+  }, [socket, p.patient_id]);
 
   const answerCall = async () => {
     try {

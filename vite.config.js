@@ -13,4 +13,7 @@ export default defineConfig({
       stream: "stream-browserify",
     },
   },
+  server: {
+    host: true, // Listen on all local IPs
+  }
 })
