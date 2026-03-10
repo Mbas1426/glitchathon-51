@@ -8,7 +8,6 @@ export default function PtOverview({ p, proto, doc, hist, msgs }) {
   const trend = prev ? (latest?.value > prev.value ? "↑" : latest?.value < prev.value ? "↓" : "→") : "—";
   return (
     <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
-      {/* Status strip */}
       <div style={pt.card}>
         <div style={pt.cardLabel}>CURRENT CARE STATUS</div>
         <div style={{ display:"flex", alignItems:"stretch" }}>
@@ -28,12 +27,10 @@ export default function PtOverview({ p, proto, doc, hist, msgs }) {
       </div>
 
       <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:14 }}>
-        {/* Mini chart */}
         <div style={pt.card}>
           <div style={pt.cardLabel}>RESULT TREND — LAST {hist.length} READINGS</div>
           <PtMiniChart hist={hist} threshold={proto?.critical_threshold} />
         </div>
-        {/* Doctor */}
         <div style={pt.card}>
           <div style={pt.cardLabel}>YOUR PHYSICIAN</div>
           <div style={{ fontSize:15, fontWeight:700, color:C.text, marginBottom:2 }}>{doc?.physician_name}</div>
@@ -48,7 +45,6 @@ export default function PtOverview({ p, proto, doc, hist, msgs }) {
         </div>
       </div>
 
-      {/* Action items */}
       <div style={{ ...pt.card, border:`1px solid ${p.status==="escalated"?C.red+"60":C.border}` }}>
         <div style={pt.cardLabel}>WHAT YOU NEED TO DO</div>
         <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:20, marginTop:4 }}>
