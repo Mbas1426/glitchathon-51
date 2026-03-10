@@ -18,7 +18,6 @@ export default function VideoCallModal({ roomId, onEndCall, callerName }) {
         <div style={{ position: 'relative', width: '100%', maxWidth: 600, background: '#fff', borderRadius: 24, overflow: 'hidden', boxShadow: '0 20px 40px rgba(0,0,0,0.2)' }}>
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyItems: 'center', justifyContent: 'center', color: C.textTitle, fontSize: 18, gap: 24, padding: '60px 40px', textAlign: 'center' }}>
               
-              {/* Icon */}
               <div style={{ width: 80, height: 80, borderRadius: 40, background: 'rgba(46, 204, 113, 0.1)', color: C.green, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 40, marginBottom: -10 }}>
                 📹
               </div>
