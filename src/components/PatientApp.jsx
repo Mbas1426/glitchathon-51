@@ -34,21 +34,16 @@ export default function PatientApp({ patient: p, onLogout }) {
 
       <rect width="1440" height="900" fill="#ffffff" />
 
-      {/* Light gray wave */}
       <path fill="#F4F6F9" d="M0,900 L0,700 C400,600 500,800 900,600 C1200,450 1350,550 1440,450 L1440,900 Z" />
       <path fill="#EAECEF" d="M0,900 L0,750 C300,700 400,850 800,750 C1100,650 1300,800 1440,700 L1440,900 Z" opacity="0.6" />
 
-      {/* Top Right Dark Blue */}
       <path fill="#2E557A" d="M600,0 C800,250 1100,150 1440,300 L1440,0 Z" />
 
-      {/* Top Left Orange */}
       <path fill="url(#gradOrangeTop)" d="M0,0 L600,0 C500,150 600,250 400,350 C250,425 250,550 0,550 Z" />
       <path fill="#FF3B30" opacity="0.8" d="M0,0 L450,0 C350,150 400,250 250,350 C100,450 100,500 0,400 Z" />
 
-      {/* Bottom Right Orange */}
       <path fill="url(#gradOrangeBot)" d="M800,900 C900,750 1000,850 1150,650 C1250,500 1350,450 1440,550 L1440,900 Z" />
 
-      {/* Blue Pill */}
       <rect x="-30" y="650" width="230" height="70" rx="35" fill="#297FC6" />
     </svg>
   );
@@ -72,9 +67,8 @@ export default function PatientApp({ patient: p, onLogout }) {
   });
 
   useEffect(() => {
-    // Poll the backend JSON database for active calls every 3 seconds
     const checkActiveCalls = async () => {
-      if (callState.callAccepted) return; // Stop polling if we are already in the call
+      if (callState.callAccepted) return; 
 
       try {
         const res = await fetch(`http://${window.location.hostname}:5002/api/call/check/${p.patient_id}`);
@@ -89,7 +83,6 @@ export default function PatientApp({ patient: p, onLogout }) {
               roomId: callData.roomId,
             }));
           } else if (!callData && callState.receivingCall && !callState.callAccepted) {
-            // The doctor hung up before we answered
             setCallState(prev => ({ ...prev, receivingCall: false, roomId: null }));
           }
         }
@@ -229,7 +222,6 @@ export default function PatientApp({ patient: p, onLogout }) {
           </Routes>
         </div>
 
-        {/* INCOMING CALL BANNER / MODAL */}
         {callState.receivingCall && !callState.callAccepted && (
           <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(10px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999 }}>
             <div style={{ background: '#fff', padding: 40, borderRadius: 24, textAlign: 'center', boxShadow: '0 20px 40px rgba(0,0,0,0.2)' }}>
@@ -254,7 +246,6 @@ export default function PatientApp({ patient: p, onLogout }) {
           </div>
         )}
 
-        {/* ACTIVE CALL UI */}
         {callState.callAccepted && callState.roomId && (
           <VideoCallModal
             roomId={callState.roomId}
