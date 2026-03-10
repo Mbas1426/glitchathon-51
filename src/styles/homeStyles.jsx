@@ -8,6 +8,9 @@ export const C = {
   btnDark:     "#000000", 
   blue:        "#297FC6", 
   red:         "#FF3B30", 
+  redDim:      "rgba(255,59,48,0.1)",
+  green:       "#28CD41",
+  orange:      "#FF9500",
   bgDeep:      "#ffffff",
   appleGradient: "linear-gradient(135deg, #0071e3, #5ac8fa)"
 };

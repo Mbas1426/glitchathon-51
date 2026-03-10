@@ -11,7 +11,6 @@ import PtMessages from "./PtMessages.jsx";
 import PtProfile from "./PtProfile.jsx";
 import VideoCallModal from "./VideoCallModal.jsx";
 import { useSocket } from '../SocketContext.jsx';
-import Peer from 'simple-peer';
 import { CSS } from '../styles/css.jsx';
 
 export default function PatientApp({ patient: p, onLogout }) {
@@ -67,93 +66,70 @@ export default function PatientApp({ patient: p, onLogout }) {
     receivingCall: false,
     caller: "",
     callerName: "",
-    callerSignal: null,
+    roomId: null,
     callAccepted: false,
     callEnded: false,
   });
 
-  const [localStream, setLocalStream] = useState(null);
-  const [remoteStream, setRemoteStream] = useState(null);
-  const connectionRef = useRef();
-
   useEffect(() => {
-    if (!socket) return;
-    
-    // Register the socket connection the patient portal accesses it directly or reloads
-    socket.emit("register", `patient_${p.patient_id}`);
+    // Poll the backend JSON database for active calls every 3 seconds
+    const checkActiveCalls = async () => {
+      if (callState.callAccepted) return; // Stop polling if we are already in the call
 
-    socket.on("callUser", (data) => {
-      setCallState(prev => ({
-        ...prev,
-        receivingCall: true,
-        caller: data.from,
-        callerName: data.callerName,
-        callerSignal: data.signal,
-      }));
-    });
-
-    socket.on("callEnded", () => {
-      endCall();
-    });
-
-    return () => {
-      socket.off("callUser");
-      socket.off("callEnded");
+      try {
+        const res = await fetch(`http://${window.location.hostname}:5002/api/call/check/${p.patient_id}`);
+        if (res.ok) {
+          const callData = await res.json();
+          if (callData && !callState.receivingCall) {
+            setCallState(prev => ({
+              ...prev,
+              receivingCall: true,
+              caller: `doctor_${callData.doctor_id}`,
+              callerName: callData.callerName,
+              roomId: callData.roomId,
+            }));
+          } else if (!callData && callState.receivingCall && !callState.callAccepted) {
+            // The doctor hung up before we answered
+            setCallState(prev => ({ ...prev, receivingCall: false, roomId: null }));
+          }
+        }
+      } catch (e) {
+        console.error("Error polling for calls:", e);
+      }
     };
-  }, [socket, p.patient_id]);
+
+    const interval = setInterval(checkActiveCalls, 3000);
+    return () => clearInterval(interval);
+  }, [p.patient_id, callState.receivingCall, callState.callAccepted]);
 
   const answerCall = async () => {
+    setCallState(prev => ({ ...prev, callAccepted: true, receivingCall: false }));
+  };
+
+  const declineCall = async () => {
+    setCallState(prev => ({ ...prev, receivingCall: false, roomId: null }));
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-      setLocalStream(stream);
-      setCallState(prev => ({ ...prev, callAccepted: true, receivingCall: false }));
-
-      const peer = new Peer({
-        initiator: false,
-        trickle: false,
-        stream: stream,
-        config: {
-          iceServers: [
-            { urls: 'stun:stun.l.google.com:19302' },
-            { urls: 'stun:global.stun.twilio.com:3478' }
-          ]
-        }
+      await fetch(`http://${window.location.hostname}:5002/api/call/end`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ patient_id: p.patient_id })
       });
-
-      peer.on("signal", (data) => {
-        socket.emit("answerCall", { signal: data, to: callState.caller });
-      });
-
-      peer.on("stream", (currentStream) => {
-        setRemoteStream(currentStream);
-      });
-
-      peer.signal(callState.callerSignal);
-      connectionRef.current = peer;
-    } catch (err) {
-      console.error("Failed to answer call", err);
-      // Fallback or alert user
+    } catch (e) {
+      console.error(e);
     }
   };
 
-  const declineCall = () => {
-    setCallState(prev => ({ ...prev, receivingCall: false }));
-    socket.emit("declineCall", { to: callState.caller });
-  };
+  const endCall = async () => {
+    setCallState({ isCalling: false, receivingCall: false, caller: "", callerName: "", roomId: null, callAccepted: false, callEnded: true });
 
-  const endCall = () => {
-    setCallState({ isCalling: false, receivingCall: false, caller: "", callerName: "", callerSignal: null, callAccepted: false, callEnded: true });
-
-    if (connectionRef.current) connectionRef.current.destroy();
-
-    if (localStream) {
-      localStream.getTracks().forEach(track => track.stop());
-      setLocalStream(null);
-    }
-    setRemoteStream(null);
-
-    if (callState.caller) {
-      socket.emit("endCall", { to: callState.caller });
+    try {
+      await fetch(`http://${window.location.hostname}:5002/api/call/end`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ patient_id: p.patient_id })
+      });
+    } catch (e) {
+      console.error("Failed to end call", e);
     }
   };
 
@@ -269,10 +245,9 @@ export default function PatientApp({ patient: p, onLogout }) {
         )}
 
         {/* ACTIVE CALL UI */}
-        {callState.callAccepted && (
+        {callState.callAccepted && callState.roomId && (
           <VideoCallModal
-            localStream={localStream}
-            remoteStream={remoteStream}
+            roomId={callState.roomId}
             callerName={callState.callerName}
             onEndCall={endCall}
           />

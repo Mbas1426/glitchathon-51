@@ -21,6 +21,11 @@ if (!fs.existsSync(usersPath)) fs.writeFileSync(usersPath, JSON.stringify({}));
 const getUsers = () => JSON.parse(fs.readFileSync(usersPath, "utf-8"));
 const saveUsers = (data) => fs.writeFileSync(usersPath, JSON.stringify(data, null, 2));
 
+const callsPath = path.join(__dirname, "data", "active_calls.json");
+if (!fs.existsSync(callsPath)) fs.writeFileSync(callsPath, JSON.stringify({}));
+const getCalls = () => JSON.parse(fs.readFileSync(callsPath, "utf-8"));
+const saveCalls = (data) => fs.writeFileSync(callsPath, JSON.stringify(data, null, 2));
+
 dotenv.config();
 
 const app = express();
@@ -101,6 +106,42 @@ app.post("/doctor/send-outreach", (req, res) => {
 
   saveMsgs(msgs);
   res.json({ success: true, message: newMsg });
+});
+
+// Video Call Endpoints
+app.post("/api/call/initiate", (req, res) => {
+  const { patient_id, roomId, callerName, doctor_id } = req.body;
+  if (!patient_id || !roomId) return res.status(400).json({ error: "Missing required fields" });
+
+  const calls = getCalls();
+  calls[patient_id] = { roomId, callerName, doctor_id, timestamp: Date.now() };
+  saveCalls(calls);
+  
+  res.json({ success: true });
+});
+
+app.get("/api/call/check/:patient_id", (req, res) => {
+  const { patient_id } = req.params;
+  const calls = getCalls();
+  
+  if (calls[patient_id]) {
+    res.json(calls[patient_id]);
+  } else {
+    res.json(null);
+  }
+});
+
+app.post("/api/call/end", (req, res) => {
+  const { patient_id } = req.body;
+  if (!patient_id) return res.status(400).json({ error: "Missing patient ID" });
+
+  const calls = getCalls();
+  if (calls[patient_id]) {
+    delete calls[patient_id];
+    saveCalls(calls);
+  }
+  
+  res.json({ success: true });
 });
 
 // Chat endpoint
